@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_typography.dart';
+import '../../../../core/responsive/responsive_layout.dart';
 import '../../../../core/widgets/circular_flag_avatar.dart';
 import '../../../../data/models/language_model.dart';
 import '../view_models/language_selection_view_model.dart';
@@ -11,6 +12,7 @@ import '../view_models/language_selection_view_model.dart';
 /// Matches the official reference design with search bar, filter chips
 /// (All, Popular, Indian, Others), circular flag avatars, radio selections,
 /// and full-width "Done (1 Selected)" button.
+/// Responsive across phones, tablets, and varied aspect ratios.
 class LanguageSelectionScreen extends StatelessWidget {
   final bool isSelectingSource;
 
@@ -46,190 +48,192 @@ class LanguageSelectionScreen extends StatelessWidget {
             final languages = vm.filteredLanguages;
 
             return SafeArea(
-              child: Column(
-                children: [
-                  // 1. Search Bar
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                    child: TextField(
-                      onChanged: vm.setSearchQuery,
-                      decoration: InputDecoration(
-                        hintText: AppStrings.searchLanguagesHint,
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: AppColors.textMuted,
-                          size: 22,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
+              child: ResponsiveContentWrapper(
+                child: Column(
+                  children: [
+                    // 1. Search Bar
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                      child: TextField(
+                        onChanged: vm.setSearchQuery,
+                        decoration: InputDecoration(
+                          hintText: AppStrings.searchLanguagesHint,
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: AppColors.textMuted,
+                            size: 22,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  // 2. Filter Category Chips (All, Popular, Indian, Others)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildFilterChip(
-                            label: AppStrings.filterAll,
-                            isSelected: vm.selectedCategory == 'All',
-                            onTap: () => vm.setCategory('All'),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            label: AppStrings.filterPopular,
-                            isSelected: vm.selectedCategory == 'Popular',
-                            onTap: () => vm.setCategory('Popular'),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            label: AppStrings.filterIndian,
-                            isSelected: vm.selectedCategory == 'Indian',
-                            onTap: () => vm.setCategory('Indian'),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            label: AppStrings.filterOthers,
-                            isSelected: vm.selectedCategory == 'Others',
-                            onTap: () => vm.setCategory('Others'),
-                          ),
-                        ],
+                    // 2. Filter Category Chips (All, Popular, Indian, Others)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterChip(
+                              label: AppStrings.filterAll,
+                              isSelected: vm.selectedCategory == 'All',
+                              onTap: () => vm.setCategory('All'),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterChip(
+                              label: AppStrings.filterPopular,
+                              isSelected: vm.selectedCategory == 'Popular',
+                              onTap: () => vm.setCategory('Popular'),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterChip(
+                              label: AppStrings.filterIndian,
+                              isSelected: vm.selectedCategory == 'Indian',
+                              onTap: () => vm.setCategory('Indian'),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterChip(
+                              label: AppStrings.filterOthers,
+                              isSelected: vm.selectedCategory == 'Others',
+                              onTap: () => vm.setCategory('Others'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  // 3. Language List
-                  Expanded(
-                    child: languages.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No matching languages found.',
-                              style: TextStyle(color: AppColors.textMuted),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 8,
-                            ),
-                            itemCount: languages.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 16),
-                            itemBuilder: (context, index) {
-                              final item = languages[index];
-                              final bool isSelected =
-                                  vm.selectedLanguage.code == item.code;
+                    // 3. Language List
+                    Expanded(
+                      child: languages.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No matching languages found.',
+                                style: TextStyle(color: AppColors.textMuted),
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              itemCount: languages.length,
+                              separatorBuilder: (_, __) =>
+                                  const Divider(height: 16),
+                              itemBuilder: (context, index) {
+                                final item = languages[index];
+                                final bool isSelected =
+                                    vm.selectedLanguage.code == item.code;
 
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () => vm.selectLanguage(item),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                    horizontal: 6,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // Circular Flag Icon
-                                      CircularFlagAvatar(
-                                        languageCode: item.code,
-                                        size: 32,
-                                      ),
-                                      const SizedBox(width: 14),
-
-                                      // Language Names
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item.name,
-                                              style: AppTypography.titleMedium
-                                                  .copyWith(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              '(${item.nativeName})',
-                                              style: AppTypography.caption
-                                                  .copyWith(
-                                                fontSize: 12,
-                                                color: AppColors.textMuted,
-                                              ),
-                                            ),
-                                          ],
+                                return InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () => vm.selectLanguage(item),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 6,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Circular Flag Icon
+                                        CircularFlagAvatar(
+                                          languageCode: item.code,
+                                          size: 32,
                                         ),
-                                      ),
+                                        const SizedBox(width: 14),
 
-                                      // Radio Selection Checkmark
-                                      Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : Colors.white,
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? AppColors.primary
-                                                : AppColors.borderLight,
-                                            width: isSelected ? 0 : 2,
+                                        // Language Names
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.name,
+                                                style: AppTypography.titleMedium
+                                                    .copyWith(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                '(${item.nativeName})',
+                                                style: AppTypography.caption
+                                                    .copyWith(
+                                                  fontSize: 12,
+                                                  color: AppColors.textMuted,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        child: isSelected
-                                            ? const Icon(
-                                                Icons.check_rounded,
-                                                color: Colors.white,
-                                                size: 16,
-                                              )
-                                            : null,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
 
-                  // 4. Sticky Bottom Action Button: Done (1 Selected)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context, vm.selectedLanguage);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
+                                        // Radio Selection Checkmark
+                                        Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isSelected
+                                                ? AppColors.primary
+                                                : Colors.white,
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : AppColors.borderLight,
+                                              width: isSelected ? 0 : 2,
+                                            ),
+                                          ),
+                                          child: isSelected
+                                              ? const Icon(
+                                                  Icons.check_rounded,
+                                                  color: Colors.white,
+                                                  size: 16,
+                                                )
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+
+                    // 4. Sticky Bottom Action Button: Done (1 Selected)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, vm.selectedLanguage);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(26),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          AppStrings.doneOneSelected,
-                          style: AppTypography.button.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                          child: Text(
+                            AppStrings.doneOneSelected,
+                            style: AppTypography.button.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -248,6 +252,7 @@ class LanguageSelectionScreen extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        constraints: const BoxConstraints(minHeight: 38), // Accessible touch target
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -265,16 +270,17 @@ class LanguageSelectionScreen extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            fontWeight: FontWeight.w700,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-            fontSize: 12,
+        child: Center(
+          child: Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         ),
       ),
     );
   }
 }
-

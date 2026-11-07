@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../responsive/responsive_layout.dart';
 
-/// Concentric glowing radial ripple rings surrounding the central voice microphone
-/// as displayed on the Matladu AI Home / Translator Screen (Screen 2).
+/// Concentric glowing radial ripple rings surrounding the central voice microphone.
+/// Adapts dynamically to compact phones, standard devices, and tablets.
 class ConcentricRippleRings extends StatefulWidget {
   final bool isListening;
   final VoidCallback onTap;
+  final double? size;
 
   const ConcentricRippleRings({
     super.key,
     required this.isListening,
     required this.onTap,
+    this.size,
   });
 
   @override
@@ -43,6 +46,16 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic size scaling based on device metrics
+    final double targetSize = widget.size ??
+        context.responsive<double>(
+          standard: 210.0,
+          compact: 175.0,
+          tablet: 230.0,
+        );
+
+    final double buttonSize = targetSize * 0.44;
+
     return AnimatedBuilder(
       animation: _animController,
       builder: (context, child) {
@@ -50,8 +63,8 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
 
         return Center(
           child: SizedBox(
-            width: 220,
-            height: 220,
+            width: targetSize,
+            height: targetSize,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -59,8 +72,8 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                 Transform.scale(
                   scale: pulse,
                   child: Container(
-                    width: 210,
-                    height: 210,
+                    width: targetSize * 0.96,
+                    height: targetSize * 0.96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -77,8 +90,8 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                 Transform.scale(
                   scale: widget.isListening ? (2.0 - pulse) : 1.0,
                   child: Container(
-                    width: 170,
-                    height: 170,
+                    width: targetSize * 0.77,
+                    height: targetSize * 0.77,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.cardLightBlue.withOpacity(0.85),
@@ -92,27 +105,28 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
 
                 // Inner Soft Ring
                 Container(
-                  width: 135,
-                  height: 135,
+                  width: targetSize * 0.61,
+                  height: targetSize * 0.61,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.12),
-                        blurRadius: 20,
+                        blurRadius: 18,
                         spreadRadius: 2,
                       ),
                     ],
                   ),
                 ),
 
-                // Center Vivid Blue Action Button with Microphone Icon
+                // Center Vivid Blue Action Button with Microphone Icon (Accessible Touch Target)
                 GestureDetector(
                   onTap: widget.onTap,
                   child: Container(
-                    width: 96,
-                    height: 96,
+                    width: buttonSize,
+                    height: buttonSize,
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: widget.isListening
@@ -128,8 +142,8 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withOpacity(0.38),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
+                          blurRadius: 16,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
@@ -138,7 +152,7 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                         widget.isListening
                             ? Icons.graphic_eq_rounded
                             : Icons.mic_rounded,
-                        size: 44,
+                        size: buttonSize * 0.44,
                         color: Colors.white,
                       ),
                     ),
@@ -152,4 +166,3 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
     );
   }
 }
-

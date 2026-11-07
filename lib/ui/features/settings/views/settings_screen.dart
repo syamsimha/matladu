@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/navigation/app_routes.dart';
+import '../../../../core/responsive/responsive_layout.dart';
 import '../../../../data/repositories/settings_repository.dart';
 import '../view_models/settings_view_model.dart';
 
@@ -11,6 +12,7 @@ import '../view_models/settings_view_model.dart';
 /// Reproduces the official reference design with top green connection mode card
 /// with switch, grouped menu items with rounded icons and chevrons,
 /// and light-red "Reset Settings" button.
+/// Fully responsive on Android, iOS, tablets, and varied aspect ratios.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -36,213 +38,215 @@ class SettingsScreen extends StatelessWidget {
         body: Consumer<SettingsViewModel>(
           builder: (context, vm, _) {
             return SafeArea(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                children: [
-                  // 1. Top Connection Mode Card with Green Switch Toggle
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardLightGreen,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFFBBF7D0),
-                        width: 1.0,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: AppColors.cardShadow,
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Green Wi-Fi Icon
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.wifi_rounded,
-                            color: AppColors.statusGreen,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-
-                        // Title & Subtitle
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.connectionMode,
-                                style: AppTypography.titleMedium.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                vm.isOnlineActive
-                                    ? AppStrings.onlineModeActive
-                                    : 'Offline on-device mode',
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.statusGreen,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Green Active Switch Toggle
-                        Switch(
-                          value: vm.isOnlineActive,
-                          onChanged: vm.toggleOnlineMode,
-                          activeColor: Colors.white,
-                          activeTrackColor: AppColors.statusGreen,
-                          inactiveThumbColor: Colors.white,
-                          inactiveTrackColor: AppColors.borderLight,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // 2. Settings Menu Items Grouped Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: AppColors.borderLight,
-                        width: 1.0,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: AppColors.cardShadow,
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Item 1: Offline Language Packs
-                        _buildSettingsTile(
-                          icon: Icons.archive_outlined,
-                          title: AppStrings.offlineLanguagePacks,
-                          subtitle: AppStrings.manageDownloadedPacks,
-                          onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.offlinePacks);
-                          },
-                        ),
-                        const Divider(height: 1, indent: 68),
-
-                        // Item 2: App Preferences
-                        _buildSettingsTile(
-                          icon: Icons.tune_rounded,
-                          title: AppStrings.appPreferences,
-                          subtitle: AppStrings.themeVoiceSpeed,
-                          onTap: () {
-                            _showPreferencesDialog(context, vm);
-                          },
-                        ),
-                        const Divider(height: 1, indent: 68),
-
-                        // Item 3: Speech Settings
-                        _buildSettingsTile(
-                          icon: Icons.mic_none_rounded,
-                          title: AppStrings.speechSettings,
-                          subtitle: AppStrings.recognitionAndTts,
-                          onTap: () {
-                            _showSpeechSettingsDialog(context, vm);
-                          },
-                        ),
-                        const Divider(height: 1, indent: 68),
-
-                        // Item 4: Cache & Storage
-                        _buildSettingsTile(
-                          icon: Icons.inventory_2_outlined,
-                          title: AppStrings.cacheAndStorage,
-                          subtitle: vm.cacheSizeMB > 0
-                              ? 'Clear cache (${vm.cacheSizeMB} MB)'
-                              : 'Cache cleared (0.0 MB)',
-                          onTap: () {
-                            vm.clearCache();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cache cleared successfully'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                        ),
-                        const Divider(height: 1, indent: 68),
-
-                        // Item 5: About Matladu AI
-                        _buildSettingsTile(
-                          icon: Icons.info_outline_rounded,
-                          title: AppStrings.aboutMatladuAi,
-                          subtitle: AppStrings.version,
-                          onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.about);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // 3. Reset Settings Button (Light Red Background)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(26),
-                    onTap: () {
-                      _showResetConfirmation(context, vm);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: 52,
+              child: ResponsiveContentWrapper(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  children: [
+                    // 1. Top Connection Mode Card with Green Switch Toggle
+                    Container(
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.cardLightRed,
-                        borderRadius: BorderRadius.circular(26),
+                        color: AppColors.cardLightGreen,
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFFFECACA),
+                          color: const Color(0xFFBBF7D0),
                           width: 1.0,
                         ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.cardShadow,
+                            blurRadius: 10,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.refresh_rounded,
-                            color: AppColors.errorRed,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            AppStrings.resetSettings,
-                            style: AppTypography.button.copyWith(
-                              color: AppColors.errorRed,
-                              fontWeight: FontWeight.w700,
+                          // Green Wi-Fi Icon
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(14),
                             ),
+                            child: const Icon(
+                              Icons.wifi_rounded,
+                              color: AppColors.statusGreen,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // Title & Subtitle
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppStrings.connectionMode,
+                                  style: AppTypography.titleMedium.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  vm.isOnlineActive
+                                      ? AppStrings.onlineModeActive
+                                      : 'Offline on-device mode',
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.statusGreen,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Green Active Switch Toggle
+                          Switch(
+                            value: vm.isOnlineActive,
+                            onChanged: vm.toggleOnlineMode,
+                            activeColor: Colors.white,
+                            activeTrackColor: AppColors.statusGreen,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor: AppColors.borderLight,
                           ),
                         ],
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(height: 18),
+
+                    // 2. Settings Menu Items Grouped Card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: AppColors.borderLight,
+                          width: 1.0,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.cardShadow,
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // Item 1: Offline Language Packs
+                          _buildSettingsTile(
+                            icon: Icons.archive_outlined,
+                            title: AppStrings.offlineLanguagePacks,
+                            subtitle: AppStrings.manageDownloadedPacks,
+                            onTap: () {
+                              Navigator.pushNamed(context, AppRoutes.offlinePacks);
+                            },
+                          ),
+                          const Divider(height: 1, indent: 68),
+
+                          // Item 2: App Preferences
+                          _buildSettingsTile(
+                            icon: Icons.tune_rounded,
+                            title: AppStrings.appPreferences,
+                            subtitle: AppStrings.themeVoiceSpeed,
+                            onTap: () {
+                              _showPreferencesDialog(context, vm);
+                            },
+                          ),
+                          const Divider(height: 1, indent: 68),
+
+                          // Item 3: Speech Settings
+                          _buildSettingsTile(
+                            icon: Icons.mic_none_rounded,
+                            title: AppStrings.speechSettings,
+                            subtitle: AppStrings.recognitionAndTts,
+                            onTap: () {
+                              _showSpeechSettingsDialog(context, vm);
+                            },
+                          ),
+                          const Divider(height: 1, indent: 68),
+
+                          // Item 4: Cache & Storage
+                          _buildSettingsTile(
+                            icon: Icons.inventory_2_outlined,
+                            title: AppStrings.cacheAndStorage,
+                            subtitle: vm.cacheSizeMB > 0
+                                ? 'Clear cache (${vm.cacheSizeMB} MB)'
+                                : 'Cache cleared (0.0 MB)',
+                            onTap: () {
+                              vm.clearCache();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Cache cleared successfully'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          ),
+                          const Divider(height: 1, indent: 68),
+
+                          // Item 5: About Matladu AI
+                          _buildSettingsTile(
+                            icon: Icons.info_outline_rounded,
+                            title: AppStrings.aboutMatladuAi,
+                            subtitle: AppStrings.version,
+                            onTap: () {
+                              Navigator.pushNamed(context, AppRoutes.about);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // 3. Reset Settings Button (Light Red Background)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(26),
+                      onTap: () {
+                        _showResetConfirmation(context, vm);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: AppColors.cardLightRed,
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: const Color(0xFFFECACA),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.refresh_rounded,
+                              color: AppColors.errorRed,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppStrings.resetSettings,
+                              style: AppTypography.button.copyWith(
+                                color: AppColors.errorRed,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             );
           },
@@ -411,4 +415,3 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-
