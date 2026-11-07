@@ -43,3 +43,4 @@ class LanguageSelectionViewModel extends ChangeNotifier {
     }).toList();
   }
 }
+

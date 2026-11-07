@@ -28,3 +28,4 @@ class LiveTranslationViewModel extends ChangeNotifier {
     });
   }
 }
+

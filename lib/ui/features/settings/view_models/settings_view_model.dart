@@ -66,3 +66,4 @@ class SettingsViewModel extends ChangeNotifier {
     _loadSettings();
   }
 }
+

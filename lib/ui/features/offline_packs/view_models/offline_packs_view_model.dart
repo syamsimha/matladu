@@ -59,3 +59,4 @@ class OfflinePacksViewModel extends ChangeNotifier {
     _loadPacks();
   }
 }
+

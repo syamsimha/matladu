@@ -90,3 +90,4 @@ class _HorizontalSoundwaveState extends State<HorizontalSoundwave>
     );
   }
 }
+
