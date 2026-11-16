@@ -8,12 +8,14 @@ class ConcentricRippleRings extends StatefulWidget {
   final bool isListening;
   final VoidCallback onTap;
   final double? size;
+  final double? audioLevel;
 
   const ConcentricRippleRings({
     super.key,
     required this.isListening,
     required this.onTap,
     this.size,
+    this.audioLevel,
   });
 
   @override
@@ -59,7 +61,10 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
     return AnimatedBuilder(
       animation: _animController,
       builder: (context, child) {
-        final double pulse = widget.isListening ? _scaleAnimation.value : 1.0;
+        final double audioBoost = (widget.isListening && widget.audioLevel != null)
+            ? widget.audioLevel! * 0.12
+            : 0.0;
+        final double pulse = widget.isListening ? (_scaleAnimation.value + audioBoost) : 1.0;
 
         return Center(
           child: SizedBox(
@@ -78,8 +83,8 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.micRipple1.withOpacity(widget.isListening ? 0.35 : 0.20),
-                          AppColors.micRipple1.withOpacity(0.0),
+                          AppColors.micRipple1.withValues(alpha: widget.isListening ? 0.35 : 0.20),
+                          AppColors.micRipple1.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -94,9 +99,9 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                     height: targetSize * 0.77,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.cardLightBlue.withOpacity(0.85),
+                      color: AppColors.cardLightBlue.withValues(alpha: 0.85),
                       border: Border.all(
-                        color: AppColors.primaryLight.withOpacity(0.18),
+                        color: AppColors.primaryLight.withValues(alpha: 0.18),
                         width: 1.5,
                       ),
                     ),
@@ -112,7 +117,7 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.12),
+                        color: AppColors.primary.withValues(alpha: 0.12),
                         blurRadius: 18,
                         spreadRadius: 2,
                       ),
@@ -141,7 +146,7 @@ class _ConcentricRippleRingsState extends State<ConcentricRippleRings>
                           : AppColors.primaryGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.38),
+                          color: AppColors.primary.withValues(alpha: 0.38),
                           blurRadius: 16,
                           offset: const Offset(0, 5),
                         ),

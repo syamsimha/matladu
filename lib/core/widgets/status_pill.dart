@@ -24,13 +24,18 @@ class StatusPill extends StatelessWidget {
     switch (modeType) {
       case ConnectionModeType.cloudAi:
         badgeColor = AppColors.onlineBadge;
-        label = 'Cloud AI';
+        label = 'Online Mode';
         icon = Icons.cloud_done_rounded;
         break;
       case ConnectionModeType.onDevice:
         badgeColor = AppColors.secondary;
-        label = 'On-Device (Offline)';
+        label = 'Offline Mode';
         icon = Icons.phone_android_rounded;
+        break;
+      case ConnectionModeType.automatic:
+        badgeColor = AppColors.statusGreen;
+        label = 'Auto Mode';
+        icon = Icons.auto_awesome_rounded;
         break;
       case ConnectionModeType.peerToPeer:
         badgeColor = AppColors.purpleAccent;
@@ -40,7 +45,7 @@ class StatusPill extends StatelessWidget {
     }
 
     return Material(
-      color: badgeColor.withOpacity(0.12),
+      color: badgeColor.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(30),
       child: InkWell(
         borderRadius: BorderRadius.circular(30),
@@ -49,7 +54,7 @@ class StatusPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: badgeColor.withOpacity(0.3), width: 1),
+            border: Border.all(color: badgeColor.withValues(alpha: 0.3), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

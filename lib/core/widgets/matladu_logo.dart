@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_strings.dart';
 import '../constants/app_typography.dart';
 
 /// The official Matladu AI dual speech-bubble logo:
@@ -19,6 +20,8 @@ class MatladuLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     final Widget logoIcon = SizedBox(
       width: size,
       height: size,
@@ -34,30 +37,20 @@ class MatladuLogo extends StatelessWidget {
       children: [
         logoIcon,
         const SizedBox(height: 16),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Matladu ',
-              style: AppTypography.displayLarge.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            Text(
-              'AI',
-              style: AppTypography.displayLarge.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+        Text(
+          AppStrings.appName,
+          style: AppTypography.displayLarge.copyWith(
+            color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         if (showTagline) ...[
           const SizedBox(height: 6),
           Text(
-            'Speak • Translate • Connect',
-            style: AppTypography.tagline,
+            AppStrings.tagline,
+            style: AppTypography.tagline.copyWith(
+              color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
+            ),
           ),
         ],
       ],
@@ -114,7 +107,7 @@ class _MatladuLogoPainter extends CustomPainter {
     blueShadowPath.lineTo(w * 0.38, h * 0.64);
     blueShadowPath.close();
 
-    canvas.drawShadow(blueShadowPath, Colors.black.withOpacity(0.18), 6, true);
+    canvas.drawShadow(blueShadowPath, Colors.black.withValues(alpha: 0.18), 6, true);
     canvas.drawPath(blueShadowPath, bluePaint);
 
     // 3. Draw 5 White Soundwave Bars inside the Blue Bubble

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
 import '../models/app_settings_model.dart';
 import '../models/connection_mode_model.dart';
 import '../models/language_model.dart';
@@ -7,16 +9,20 @@ import '../services/local_storage_service.dart';
 /// Repository managing user preferences, languages, connection modes, and offline packages.
 class SettingsRepository {
   final LocalStorageService _storageService;
+  final _connectionModeController = StreamController<ConnectionModeType>.broadcast();
 
   SettingsRepository({required LocalStorageService storageService})
       : _storageService = storageService;
 
+  Stream<ConnectionModeType> get connectionModeStream => _connectionModeController.stream;
+
   // Language Preferences
   LanguageModel getSourceLanguage() {
     final code = _storageService.getSourceLanguageCode();
+    if (code == 'auto') return LanguageModel.autoDetect;
     return LanguageModel.defaultLanguages.firstWhere(
       (l) => l.code == code,
-      orElse: () => LanguageModel.defaultLanguages.first, // English
+      orElse: () => LanguageModel.autoDetect, // Auto Detect default
     );
   }
 
@@ -47,6 +53,9 @@ class SettingsRepository {
 
   Future<void> setConnectionMode(ConnectionModeType mode) async {
     await _storageService.setConnectionMode(mode);
+    if (!_connectionModeController.isClosed) {
+      _connectionModeController.add(mode);
+    }
   }
 
   // App Settings
@@ -56,6 +65,18 @@ class SettingsRepository {
 
   Future<void> saveAppSettings(AppSettingsModel settings) async {
     await _storageService.saveAppSettings(settings);
+  }
+
+  // Cloud Speech Recognition Consent (Google Speech Services in Online Mode)
+  bool getCloudSpeechConsent() {
+    return _storageService.getAppSettings().cloudSpeechConsentGranted;
+  }
+
+  Future<void> setCloudSpeechConsent(bool granted) async {
+    final current = _storageService.getAppSettings();
+    await _storageService.saveAppSettings(
+      current.copyWith(cloudSpeechConsentGranted: granted),
+    );
   }
 
   // Offline Packs
@@ -88,6 +109,14 @@ class SettingsRepository {
     return _storageService.getDownloadedPackCodes();
   }
 
+  Future<void> addDownloadedPack(String code) async {
+    final downloaded = List<String>.from(_storageService.getDownloadedPackCodes());
+    if (!downloaded.contains(code)) {
+      downloaded.add(code);
+      await _storageService.setDownloadedPackCodes(downloaded);
+    }
+  }
+
   Future<void> togglePackDownload(String code) async {
     final downloaded = List<String>.from(_storageService.getDownloadedPackCodes());
     if (downloaded.contains(code)) {
@@ -104,10 +133,22 @@ class SettingsRepository {
     await _storageService.setDownloadedPackCodes(downloaded);
   }
 
+  // Theme Mode
+  ThemeMode getThemeMode() {
+    final mode = _storageService.getThemeMode();
+    return mode == 'dark' ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _storageService.setThemeMode(mode == ThemeMode.dark ? 'dark' : 'light');
+  }
+
   Future<void> resetAllSettings() async {
     await _storageService.saveAppSettings(const AppSettingsModel());
-    await _storageService.setSourceLanguageCode('en');
+    await _storageService.setSourceLanguageCode('auto');
     await _storageService.setTargetLanguageCode('te');
-    await _storageService.setConnectionMode(ConnectionModeType.cloudAi);
+    await _storageService.setConnectionMode(ConnectionModeType.automatic);
+    await _storageService.setDownloadedPackCodes(<String>[]);
+    await _storageService.setThemeMode('light');
   }
 }

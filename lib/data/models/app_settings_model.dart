@@ -6,6 +6,8 @@ class AppSettingsModel {
   final bool noiseSuppression;
   final double speechSpeed; // 0.5x to 2.0x
   final String speechPitch; // 'Normal', 'Low', 'High'
+  final String? selectedVoiceName;
+  final bool cloudSpeechConsentGranted;
 
   const AppSettingsModel({
     this.autoDetectLanguage = true,
@@ -14,6 +16,8 @@ class AppSettingsModel {
     this.noiseSuppression = true,
     this.speechSpeed = 1.0,
     this.speechPitch = 'Normal',
+    this.selectedVoiceName,
+    this.cloudSpeechConsentGranted = false,
   });
 
   AppSettingsModel copyWith({
@@ -23,6 +27,8 @@ class AppSettingsModel {
     bool? noiseSuppression,
     double? speechSpeed,
     String? speechPitch,
+    String? selectedVoiceName,
+    bool? cloudSpeechConsentGranted,
   }) {
     return AppSettingsModel(
       autoDetectLanguage: autoDetectLanguage ?? this.autoDetectLanguage,
@@ -31,6 +37,8 @@ class AppSettingsModel {
       noiseSuppression: noiseSuppression ?? this.noiseSuppression,
       speechSpeed: speechSpeed ?? this.speechSpeed,
       speechPitch: speechPitch ?? this.speechPitch,
+      selectedVoiceName: selectedVoiceName ?? this.selectedVoiceName,
+      cloudSpeechConsentGranted: cloudSpeechConsentGranted ?? this.cloudSpeechConsentGranted,
     );
   }
 
@@ -41,6 +49,8 @@ class AppSettingsModel {
         'noiseSuppression': noiseSuppression,
         'speechSpeed': speechSpeed,
         'speechPitch': speechPitch,
+        'selectedVoiceName': selectedVoiceName,
+        'cloudSpeechConsentGranted': cloudSpeechConsentGranted,
       };
 
   factory AppSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +61,8 @@ class AppSettingsModel {
       noiseSuppression: json['noiseSuppression'] as bool? ?? true,
       speechSpeed: (json['speechSpeed'] as num?)?.toDouble() ?? 1.0,
       speechPitch: json['speechPitch'] as String? ?? 'Normal',
+      selectedVoiceName: json['selectedVoiceName'] as String?,
+      cloudSpeechConsentGranted: json['cloudSpeechConsentGranted'] as bool? ?? false,
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:matladu_ai/data/models/translation_item_model.dart';
 void main() {
   group('Matladu AI Phase 1 Model Tests', () {
     test('LanguageModel defaults and JSON serialization', () {
-      final defaultLangs = LanguageModel.defaultLanguages;
+      const defaultLangs = LanguageModel.defaultLanguages;
       expect(defaultLangs.isNotEmpty, true);
       expect(defaultLangs.first.code, 'en');
 
@@ -18,9 +18,11 @@ void main() {
     });
 
     test('ConnectionModeModel available modes', () {
-      final modes = ConnectionModeModel.availableModes;
-      expect(modes.length, 3);
-      expect(modes.first.type, ConnectionModeType.cloudAi);
+      const modes = ConnectionModeModel.availableModes;
+      expect(modes.length, 4);
+      expect(modes.any((m) => m.type == ConnectionModeType.automatic), isTrue);
+      expect(modes.any((m) => m.type == ConnectionModeType.cloudAi), isTrue);
+      expect(modes.any((m) => m.type == ConnectionModeType.onDevice), isTrue);
     });
 
     test('OfflinePackModel copyWith and JSON serialization', () {

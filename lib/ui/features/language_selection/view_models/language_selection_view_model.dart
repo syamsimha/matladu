@@ -12,7 +12,10 @@ class LanguageSelectionViewModel extends ChangeNotifier {
     required this.isSelectingSource,
     LanguageModel? initialLanguage,
   }) {
-    _selectedLanguage = initialLanguage ?? LanguageModel.defaultLanguages.first;
+    _selectedLanguage = initialLanguage ??
+        (isSelectingSource
+            ? LanguageModel.autoDetect
+            : (LanguageModel.fromCode('te') ?? LanguageModel.defaultLanguages.first));
   }
 
   String get searchQuery => _searchQuery;
@@ -30,17 +33,32 @@ class LanguageSelectionViewModel extends ChangeNotifier {
   }
 
   void selectLanguage(LanguageModel lang) {
+    // Auto Detect is strictly permitted ONLY for source language
+    if (!isSelectingSource && lang.code == 'auto') return;
     _selectedLanguage = lang;
     notifyListeners();
   }
 
   List<LanguageModel> get filteredLanguages {
-    return LanguageModel.defaultLanguages.where((l) {
+    final list = LanguageModel.defaultLanguages.where((l) {
       final matchesSearch = l.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           l.nativeName.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesCategory = _selectedCategory == 'All' || l.category == _selectedCategory;
       return matchesSearch && matchesCategory;
     }).toList();
+
+    // Auto Detect is available ONLY for the source language, NEVER the target language
+    if (isSelectingSource) {
+      final matchesAutoSearch = _searchQuery.isEmpty ||
+          'auto detect'.contains(_searchQuery.toLowerCase()) ||
+          'auto'.contains(_searchQuery.toLowerCase());
+      final matchesAutoCat = _selectedCategory == 'All' || _selectedCategory == 'Popular';
+      if (matchesAutoSearch && matchesAutoCat) {
+        list.insert(0, LanguageModel.autoDetect);
+      }
+    }
+
+    return list;
   }
 }
 

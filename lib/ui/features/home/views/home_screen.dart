@@ -10,7 +10,11 @@ import '../../../../core/widgets/concentric_ripple_rings.dart';
 import '../../../../core/widgets/horizontal_soundwave.dart';
 import '../../../../core/widgets/matladu_bottom_nav_bar.dart';
 import '../../../../core/widgets/matladu_logo.dart';
+import '../../theme/view_models/theme_view_model.dart';
+import '../../live_translation/view_models/live_translation_view_model.dart';
 import '../view_models/home_view_model.dart';
+import '../../../../data/services/room/i_room_service.dart';
+import 'widgets/room_talk_menu_bottom_sheet.dart';
 
 /// Screen 2: Home / Translator
 /// Matches the official reference design with custom top bar, online status pill,
@@ -21,10 +25,12 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Consumer<HomeViewModel>(
       builder: (context, vm, _) {
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: isDark ? AppDarkColors.background : AppColors.background,
           body: SafeArea(
             child: ResponsiveContentWrapper(
               child: LayoutBuilder(
@@ -42,13 +48,26 @@ class HomeScreen extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  // Hamburger Menu Icon
+                                  // Hamburger Menu Icon (Talk Rooms Navigation)
                                   IconButton(
-                                    icon: const Icon(Icons.menu_rounded, size: 26),
-                                    color: AppColors.textPrimary,
+                                    icon: Icon(
+                                      Icons.menu_rounded,
+                                      size: 26,
+                                      color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                                    ),
+                                    tooltip: 'Talk Rooms',
                                     onPressed: () {
-                                      Navigator.pushNamed(context, AppRoutes.settings)
-                                          .then((_) => vm.refreshFromSettings());
+                                      try {
+                                        final roomService = Provider.of<IRoomService>(context, listen: false);
+                                        RoomTalkMenuBottomSheet.show(
+                                          context,
+                                          roomService: roomService,
+                                          sourceLanguageCode: vm.sourceLanguage.code,
+                                          targetLanguageCode: vm.targetLanguage.code,
+                                        );
+                                      } catch (e) {
+                                        debugPrint('[HomeScreen] Room service unavailable: $e');
+                                      }
                                     },
                                   ),
 
@@ -63,32 +82,44 @@ class HomeScreen extends StatelessWidget {
                                         style: AppTypography.displayMedium.copyWith(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
+                                          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                                         ),
                                       ),
                                     ],
                                   ),
 
-                                  // VIP Crown Icon
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.workspace_premium_rounded,
-                                      size: 26,
-                                      color: AppColors.crownGold,
-                                    ),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Matladu AI Premium • Active'),
-                                          duration: Duration(seconds: 1),
-                                        ),
-                                      );
+                                  // Theme Toggle Button (Light/Dark mode)
+                                  InkWell(
+                                    key: const ValueKey('theme_toggle_button'),
+                                    onTap: () {
+                                      try {
+                                        context.read<ThemeViewModel>().toggleTheme();
+                                      } catch (_) {}
                                     },
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? AppDarkColors.surface : const Color(0xFFF0F5FF),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                                        size: 20,
+                                        color: isDark ? const Color(0xFFFBBF24) : AppColors.primary,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            // 2. Status Pill: 🟢 Online • Ready
+                            // 2. Status Pill: Dynamic connectivity and readiness
                             GestureDetector(
                               onTap: () {
                                 Navigator.pushNamed(context, AppRoutes.connectionMode)
@@ -97,26 +128,26 @@ class HomeScreen extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: AppColors.statusGreenBg,
+                                  color: vm.getStatusPillBgColor(isDark),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: AppColors.statusGreen.withOpacity(0.25),
+                                    color: vm.getStatusPillColor(isDark).withValues(alpha: 0.25),
                                     width: 1.0,
                                   ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
-                                      Icons.wifi_rounded,
+                                    Icon(
+                                      vm.statusPillIcon,
                                       size: 15,
-                                      color: AppColors.statusGreen,
+                                      color: vm.getStatusPillColor(isDark),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      AppStrings.onlineReady,
+                                      vm.statusPillText,
                                       style: AppTypography.caption.copyWith(
-                                        color: AppColors.statusGreen,
+                                        color: vm.getStatusPillColor(isDark),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 12,
                                       ),
@@ -129,12 +160,40 @@ class HomeScreen extends StatelessWidget {
                             const Spacer(flex: 1),
 
                             // 3. Central Concentric Glowing Mic Rings & Labels
-                            ConcentricRippleRings(
-                              isListening: vm.isListening,
-                              onTap: () {
-                                vm.startListening(() {
-                                  Navigator.pushNamed(context, AppRoutes.liveTranslation);
-                                });
+                            Builder(
+                              builder: (context) {
+                                LiveTranslationViewModel? liveVm;
+                                try {
+                                  liveVm = Provider.of<LiveTranslationViewModel>(context);
+                                } catch (_) {}
+                                final isListening = (liveVm?.isListening ?? false) || vm.isListening;
+                                return ConcentricRippleRings(
+                                  isListening: isListening,
+                                  onTap: () async {
+                                    if (liveVm != null) {
+                                      final success = await liveVm.startSessionFromHome(
+                                        sourceLanguage: vm.sourceLanguage,
+                                        targetLanguage: vm.targetLanguage,
+                                      );
+                                      if (success && context.mounted) {
+                                        Navigator.pushNamed(context, AppRoutes.liveTranslation);
+                                      } else if (!success && context.mounted) {
+                                        final err = liveVm?.errorMessage ?? 'Microphone hardware is unavailable. Please try again.';
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(err),
+                                            backgroundColor: AppColors.errorRed,
+                                            duration: const Duration(seconds: 3),
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      vm.startListening(() {
+                                        Navigator.pushNamed(context, AppRoutes.liveTranslation);
+                                      });
+                                    }
+                                  },
+                                );
                               },
                             ),
 
@@ -146,58 +205,67 @@ class HomeScreen extends StatelessWidget {
                               style: AppTypography.headlineMedium.copyWith(
                                 fontSize: context.isCompact ? 18 : 20,
                                 fontWeight: FontWeight.w700,
+                                color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               AppStrings.speakNaturally,
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondary,
+                                color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
                                 fontSize: context.isCompact ? 12 : 13,
                               ),
                             ),
 
                             const Spacer(flex: 1),
 
-                            // 4. Language Selector Card: [Flag] English (Detect) ⇄ [Flag] Telugu (తెలుగు)
+                            // 4. Separate Language Selector Boxes: [Source Box] ⇄ [Target Box]
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(color: AppColors.borderLight, width: 1.0),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: AppColors.cardShadow,
-                                      blurRadius: 12,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Left Language: English (Detect)
-                                    Expanded(
-                                      child: InkWell(
-                                        onTap: () async {
-                                          final result = await Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.languageSelection,
-                                            arguments: {'isSelectingSource': true},
-                                          );
-                                          if (result != null) {
-                                            vm.setSourceLanguage(result as dynamic);
-                                          }
-                                        },
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  // Left: Separate Source Language Selection Box
+                                  Expanded(
+                                    child: InkWell(
+                                      key: const ValueKey('source_language_box'),
+                                      onTap: () async {
+                                        final result = await Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.languageSelection,
+                                          arguments: {
+                                            'isSelectingSource': true,
+                                            'currentLanguage': vm.sourceLanguage,
+                                          },
+                                        );
+                                        if (result != null) {
+                                          vm.setSourceLanguage(result as dynamic);
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppDarkColors.surface : Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                                            width: 1.0,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isDark ? Colors.black.withValues(alpha: 0.2) : AppColors.cardShadow,
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
                                         child: Row(
                                           children: [
                                             CircularFlagAvatar(
                                               languageCode: vm.sourceLanguage.code,
                                               size: 28,
                                             ),
-                                            const SizedBox(width: 10),
+                                            const SizedBox(width: 8),
                                             Expanded(
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,14 +276,21 @@ class HomeScreen extends StatelessWidget {
                                                     style: AppTypography.titleMedium.copyWith(
                                                       fontWeight: FontWeight.w700,
                                                       fontSize: 14,
+                                                      color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                                                     ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                   Text(
-                                                    '(Detect)',
+                                                    vm.sourceLanguage.code == 'auto'
+                                                        ? '(Detect)'
+                                                        : '(${vm.sourceLanguage.nativeName})',
                                                     style: AppTypography.caption.copyWith(
                                                       fontSize: 11,
-                                                      color: AppColors.textMuted,
+                                                      color: isDark ? AppDarkColors.textSecondary : AppColors.textMuted,
                                                     ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ],
                                               ),
@@ -224,73 +299,111 @@ class HomeScreen extends StatelessWidget {
                                         ),
                                       ),
                                     ),
+                                  ),
 
-                                    // Center Swap Button ⇄
-                                    InkWell(
-                                      onTap: vm.swapLanguages,
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.cardLightBlue,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.swap_horiz_rounded,
-                                          color: AppColors.primary,
-                                          size: 22,
+                                  const SizedBox(width: 8),
+
+                                  // Center Floating Swap Button ⇄
+                                  InkWell(
+                                    key: const ValueKey('swap_languages_button'),
+                                    onTap: vm.swapLanguages,
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? AppDarkColors.cardLightBlue : AppColors.cardLightBlue,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                                          width: 1.0,
                                         ),
                                       ),
+                                      child: Icon(
+                                        Icons.swap_horiz_rounded,
+                                        color: isDark ? AppDarkColors.primary : AppColors.primary,
+                                        size: 22,
+                                      ),
                                     ),
+                                  ),
 
-                                    // Right Language: Telugu (తెలుగు)
-                                    Expanded(
-                                      child: InkWell(
-                                        onTap: () async {
-                                          final result = await Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.languageSelection,
-                                            arguments: {'isSelectingSource': false},
-                                          );
-                                          if (result != null) {
-                                            vm.setTargetLanguage(result as dynamic);
-                                          }
-                                        },
+                                  const SizedBox(width: 8),
+
+                                  // Right: Separate Target Language Selection Box
+                                  Expanded(
+                                    child: InkWell(
+                                      key: const ValueKey('target_language_box'),
+                                      onTap: () async {
+                                        final result = await Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.languageSelection,
+                                          arguments: {
+                                            'isSelectingSource': false,
+                                            'currentLanguage': vm.targetLanguage,
+                                          },
+                                        );
+                                        if (result != null) {
+                                          vm.setTargetLanguage(result as dynamic);
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppDarkColors.surface : Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                                            width: 1.0,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isDark ? Colors.black.withValues(alpha: 0.2) : AppColors.cardShadow,
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
                                             CircularFlagAvatar(
                                               languageCode: vm.targetLanguage.code,
                                               size: 28,
                                             ),
-                                            const SizedBox(width: 10),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  vm.targetLanguage.name,
-                                                  style: AppTypography.titleMedium.copyWith(
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 14,
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    vm.targetLanguage.name,
+                                                    style: AppTypography.titleMedium.copyWith(
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 14,
+                                                      color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
-                                                ),
-                                                Text(
-                                                  '(${vm.targetLanguage.nativeName})',
-                                                  style: AppTypography.caption.copyWith(
-                                                    fontSize: 11,
-                                                    color: AppColors.textMuted,
+                                                  Text(
+                                                    '(${vm.targetLanguage.nativeName})',
+                                                    style: AppTypography.caption.copyWith(
+                                                      fontSize: 11,
+                                                      color: isDark ? AppDarkColors.textSecondary : AppColors.textMuted,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
 
@@ -307,14 +420,17 @@ class HomeScreen extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark ? AppDarkColors.surface : Colors.white,
                                     borderRadius: BorderRadius.circular(22),
-                                    border: Border.all(color: AppColors.borderLight, width: 1.0),
-                                    boxShadow: const [
+                                    border: Border.all(
+                                      color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                                      width: 1.0,
+                                    ),
+                                    boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.cardShadow,
+                                        color: isDark ? Colors.black.withValues(alpha: 0.25) : AppColors.cardShadow,
                                         blurRadius: 14,
-                                        offset: Offset(0, 4),
+                                        offset: const Offset(0, 4),
                                       ),
                                     ],
                                   ),
@@ -346,6 +462,7 @@ class HomeScreen extends StatelessWidget {
                                         style: AppTypography.titleMedium.copyWith(
                                           fontStyle: FontStyle.italic,
                                           fontWeight: FontWeight.w600,
+                                          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                                           fontSize: 15,
                                         ),
                                       ),
@@ -404,9 +521,10 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _showHistoryBottomSheet(BuildContext context, HomeViewModel vm) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppDarkColors.surface : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -424,22 +542,27 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Translation History',
-                        style: AppTypography.headlineMedium,
+                        style: AppTypography.headlineMedium.copyWith(
+                          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                        ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                        ),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
                   ),
-                  const Divider(),
+                  Divider(color: isDark ? AppDarkColors.border : AppColors.borderLight),
                   if (vm.history.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Center(
                         child: Text(
                           'No saved translations yet.',
-                          style: TextStyle(color: AppColors.textMuted),
+                          style: TextStyle(color: isDark ? AppDarkColors.textMuted : AppColors.textMuted),
                         ),
                       ),
                     )
@@ -448,15 +571,26 @@ class HomeScreen extends StatelessWidget {
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: vm.history.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? AppDarkColors.border : AppColors.borderLight),
                         itemBuilder: (_, i) {
                           final item = vm.history[i];
                           return ListTile(
-                            title: Text(item.sourceText, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            subtitle: Text(item.translatedText),
+                            title: Text(
+                              item.sourceText,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              item.translatedText,
+                              style: TextStyle(
+                                color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
+                              ),
+                            ),
                             trailing: Text(
-                              '${item.sourceLanguageCode.toUpperCase()} → ${item.targetLanguageCode.toUpperCase()}',
-                              style: const TextStyle(fontSize: 11, color: AppColors.primary),
+                              ' -> ',
+                              style: TextStyle(fontSize: 11, color: isDark ? AppDarkColors.primary : AppColors.primary),
                             ),
                           );
                         },

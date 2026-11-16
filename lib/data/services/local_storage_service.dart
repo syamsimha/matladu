@@ -16,9 +16,15 @@ class LocalStorageService {
   static const String _keyHistory = 'matladu_translation_history';
   static const String _keySettings = 'matladu_app_settings';
   static const String _keyDownloadedPacks = 'matladu_downloaded_packs';
+  static const String _keyThemeMode = 'matladu_theme_mode';
+
+  // Theme Mode
+  String getThemeMode() => _prefs.getString(_keyThemeMode) ?? 'light';
+  Future<bool> setThemeMode(String mode) =>
+      _prefs.setString(_keyThemeMode, mode);
 
   // Language Preferences
-  String getSourceLanguageCode() => _prefs.getString(_keySourceLang) ?? 'en';
+  String getSourceLanguageCode() => _prefs.getString(_keySourceLang) ?? 'auto';
   Future<bool> setSourceLanguageCode(String code) =>
       _prefs.setString(_keySourceLang, code);
 
@@ -26,12 +32,13 @@ class LocalStorageService {
   Future<bool> setTargetLanguageCode(String code) =>
       _prefs.setString(_keyTargetLang, code);
 
-  // Connection Mode
+  // Connection Mode: Automatic is default on first installation
   ConnectionModeType getConnectionMode() {
     final raw = _prefs.getString(_keyConnectionMode);
     if (raw == 'onDevice') return ConnectionModeType.onDevice;
+    if (raw == 'cloudAi') return ConnectionModeType.cloudAi;
     if (raw == 'peerToPeer') return ConnectionModeType.peerToPeer;
-    return ConnectionModeType.cloudAi;
+    return ConnectionModeType.automatic;
   }
 
   Future<bool> setConnectionMode(ConnectionModeType mode) {
@@ -81,13 +88,33 @@ class LocalStorageService {
     return _prefs.remove(_keyHistory);
   }
 
-  // Offline Packs
+  // Offline Packs: on fresh installation, packs are NOT downloaded by default
   List<String> getDownloadedPackCodes() {
-    return _prefs.getStringList(_keyDownloadedPacks) ?? ['en', 'te'];
+    return _prefs.getStringList(_keyDownloadedPacks) ?? <String>[];
   }
 
   Future<bool> setDownloadedPackCodes(List<String> codes) {
     return _prefs.setStringList(_keyDownloadedPacks, codes);
+  }
+
+  // Quota Exhaustion Persistence
+  static const String _keyQuotaExhaustedAt = 'matladu_quota_exhausted_at';
+
+  DateTime? getQuotaExhaustedAt() {
+    final raw = _prefs.getString(_keyQuotaExhaustedAt);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return DateTime.parse(raw).toUtc();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> setQuotaExhaustedAt(DateTime? timestamp) {
+    if (timestamp == null) {
+      return _prefs.remove(_keyQuotaExhaustedAt);
+    }
+    return _prefs.setString(_keyQuotaExhaustedAt, timestamp.toUtc().toIso8601String());
   }
 }
 

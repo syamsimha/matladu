@@ -15,31 +15,45 @@ import '../view_models/language_selection_view_model.dart';
 /// Responsive across phones, tablets, and varied aspect ratios.
 class LanguageSelectionScreen extends StatelessWidget {
   final bool isSelectingSource;
+  final LanguageModel? currentLanguage;
 
   const LanguageSelectionScreen({
     super.key,
     this.isSelectingSource = true,
+    this.currentLanguage,
   });
+
+  static bool _isOfflineSupported(String code) {
+    const offlineCodes = {'en', 'de', 'te', 'hi', 'bn', 'mr', 'ta', 'ur', 'gu', 'kn'};
+    return offlineCodes.contains(code.toLowerCase());
+  }
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ChangeNotifierProvider(
       create: (_) => LanguageSelectionViewModel(
         isSelectingSource: isSelectingSource,
-        initialLanguage: isSelectingSource
-            ? LanguageModel.defaultLanguages.first // English
-            : LanguageModel.defaultLanguages[1], // Telugu
+        initialLanguage: currentLanguage ??
+            (isSelectingSource
+                ? LanguageModel.autoDetect
+                : (LanguageModel.fromCode('te') ?? LanguageModel.defaultLanguages[0])),
       ),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: isDark ? AppDarkColors.background : AppColors.background,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
             AppStrings.selectLanguageTitle,
-            style: AppTypography.headlineMedium.copyWith(fontSize: 18),
+            style: AppTypography.headlineMedium.copyWith(
+              fontSize: 18,
+              color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+            ),
           ),
           centerTitle: true,
         ),
@@ -56,16 +70,35 @@ class LanguageSelectionScreen extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                       child: TextField(
                         onChanged: vm.setSearchQuery,
+                        style: TextStyle(
+                          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+                        ),
                         decoration: InputDecoration(
                           hintText: AppStrings.searchLanguagesHint,
-                          prefixIcon: const Icon(
+                          hintStyle: TextStyle(
+                            color: isDark ? AppDarkColors.textMuted : AppColors.textMuted,
+                          ),
+                          fillColor: isDark ? AppDarkColors.surface : Colors.white,
+                          prefixIcon: Icon(
                             Icons.search_rounded,
-                            color: AppColors.textMuted,
+                            color: isDark ? AppDarkColors.textMuted : AppColors.textMuted,
                             size: 22,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                            ),
                           ),
                         ),
                       ),
@@ -79,24 +112,28 @@ class LanguageSelectionScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             _buildFilterChip(
+                              context: context,
                               label: AppStrings.filterAll,
                               isSelected: vm.selectedCategory == 'All',
                               onTap: () => vm.setCategory('All'),
                             ),
                             const SizedBox(width: 8),
                             _buildFilterChip(
+                              context: context,
                               label: AppStrings.filterPopular,
                               isSelected: vm.selectedCategory == 'Popular',
                               onTap: () => vm.setCategory('Popular'),
                             ),
                             const SizedBox(width: 8),
                             _buildFilterChip(
+                              context: context,
                               label: AppStrings.filterIndian,
                               isSelected: vm.selectedCategory == 'Indian',
                               onTap: () => vm.setCategory('Indian'),
                             ),
                             const SizedBox(width: 8),
                             _buildFilterChip(
+                              context: context,
                               label: AppStrings.filterOthers,
                               isSelected: vm.selectedCategory == 'Others',
                               onTap: () => vm.setCategory('Others'),
@@ -111,10 +148,12 @@ class LanguageSelectionScreen extends StatelessWidget {
                     // 3. Language List
                     Expanded(
                       child: languages.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
                                 'No matching languages found.',
-                                style: TextStyle(color: AppColors.textMuted),
+                                style: TextStyle(
+                                  color: isDark ? AppDarkColors.textMuted : AppColors.textMuted,
+                                ),
                               ),
                             )
                           : ListView.separated(
@@ -123,8 +162,10 @@ class LanguageSelectionScreen extends StatelessWidget {
                                 vertical: 8,
                               ),
                               itemCount: languages.length,
-                              separatorBuilder: (_, __) =>
-                                  const Divider(height: 16),
+                              separatorBuilder: (_, __) => Divider(
+                                height: 16,
+                                color: isDark ? AppDarkColors.border : AppColors.borderLight,
+                              ),
                               itemBuilder: (context, index) {
                                 final item = languages[index];
                                 final bool isSelected =
@@ -153,13 +194,58 @@ class LanguageSelectionScreen extends StatelessWidget {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                item.name,
-                                                style: AppTypography.titleMedium
-                                                    .copyWith(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                                              Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      item.name,
+                                                      style: AppTypography.titleMedium
+                                                          .copyWith(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: isDark
+                                                            ? AppDarkColors.textPrimary
+                                                            : AppColors.textPrimary,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  if (item.code != 'auto')
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: _isOfflineSupported(item.code)
+                                                            ? (isDark
+                                                                ? const Color(0xFF064E3B)
+                                                                : const Color(0xFFD1FAE5))
+                                                            : (isDark
+                                                                ? const Color(0xFF1E293B)
+                                                                : const Color(0xFFF1F5F9)),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: Text(
+                                                        _isOfflineSupported(item.code)
+                                                            ? 'Offline Ready'
+                                                            : 'Online',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: _isOfflineSupported(item.code)
+                                                              ? (isDark
+                                                                  ? const Color(0xFF34D399)
+                                                                  : const Color(0xFF047857))
+                                                              : (isDark
+                                                                  ? const Color(0xFF94A3B8)
+                                                                  : const Color(0xFF64748B)),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
                                               const SizedBox(height: 2),
                                               Text(
@@ -167,7 +253,9 @@ class LanguageSelectionScreen extends StatelessWidget {
                                                 style: AppTypography.caption
                                                     .copyWith(
                                                   fontSize: 12,
-                                                  color: AppColors.textMuted,
+                                                  color: isDark
+                                                      ? AppDarkColors.textMuted
+                                                      : AppColors.textMuted,
                                                 ),
                                               ),
                                             ],
@@ -181,12 +269,20 @@ class LanguageSelectionScreen extends StatelessWidget {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: isSelected
-                                                ? AppColors.primary
-                                                : Colors.white,
+                                                ? (isDark
+                                                    ? AppDarkColors.primary
+                                                    : AppColors.primary)
+                                                : (isDark
+                                                    ? AppDarkColors.surfaceSecondary
+                                                    : Colors.white),
                                             border: Border.all(
                                               color: isSelected
-                                                  ? AppColors.primary
-                                                  : AppColors.borderLight,
+                                                  ? (isDark
+                                                      ? AppDarkColors.primary
+                                                      : AppColors.primary)
+                                                  : (isDark
+                                                      ? AppDarkColors.border
+                                                      : AppColors.borderLight),
                                               width: isSelected ? 0 : 2,
                                             ),
                                           ),
@@ -217,7 +313,9 @@ class LanguageSelectionScreen extends StatelessWidget {
                             Navigator.pop(context, vm.selectedLanguage);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: isDark
+                                ? AppDarkColors.primary
+                                : AppColors.primary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(26),
                             ),
@@ -243,10 +341,13 @@ class LanguageSelectionScreen extends StatelessWidget {
   }
 
   Widget _buildFilterChip({
+    required BuildContext context,
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -254,16 +355,21 @@ class LanguageSelectionScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         constraints: const BoxConstraints(minHeight: 38), // Accessible touch target
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
+          color: isSelected
+              ? (isDark ? AppDarkColors.primary : AppColors.primary)
+              : (isDark ? AppDarkColors.surfaceSecondary : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.borderLight,
+            color: isSelected
+                ? (isDark ? AppDarkColors.primary : AppColors.primary)
+                : (isDark ? AppDarkColors.border : AppColors.borderLight),
             width: 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.28),
+                    color: (isDark ? AppDarkColors.primary : AppColors.primary)
+                        .withValues(alpha: 0.28),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -275,7 +381,9 @@ class LanguageSelectionScreen extends StatelessWidget {
             label,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? AppDarkColors.textSecondary : AppColors.textSecondary),
               fontSize: 12,
             ),
           ),

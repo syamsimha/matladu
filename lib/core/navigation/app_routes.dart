@@ -22,31 +22,35 @@ class AppRoutes {
   static const String about = '/about';
   static const String connectionMode = '/connection-mode';
 
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
+  static Route<dynamic> onGenerateRoute(RouteSettings routeSettings) {
+    switch (routeSettings.name) {
       case splash:
-        return _buildPageRoute(const SplashScreen(), settings);
+        return _buildPageRoute(const SplashScreen(), routeSettings);
       case home:
-        return _buildPageRoute(const HomeScreen(), settings);
+        return _buildPageRoute(const HomeScreen(), routeSettings);
       case liveTranslation:
-        return _buildPageRoute(const LiveTranslationScreen(), settings);
+        return _buildPageRoute(const LiveTranslationScreen(), routeSettings);
       case languageSelection:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final args = routeSettings.arguments as Map<String, dynamic>? ?? {};
         final isSelectingSource = args['isSelectingSource'] as bool? ?? true;
+        final currentLanguage = args['currentLanguage'] as LanguageModel?;
         return _buildPageRoute(
-          LanguageSelectionScreen(isSelectingSource: isSelectingSource),
-          settings,
+          LanguageSelectionScreen(
+            isSelectingSource: isSelectingSource,
+            currentLanguage: currentLanguage,
+          ),
+          routeSettings,
         );
       case offlinePacks:
-        return _buildPageRoute(const OfflinePacksScreen(), settings);
+        return _buildPageRoute(const OfflinePacksScreen(), routeSettings);
       case settings:
-        return _buildPageRoute(const SettingsScreen(), settings);
+        return _buildPageRoute(const SettingsScreen(), routeSettings);
       case about:
-        return _buildPageRoute(const AboutScreen(), settings);
+        return _buildPageRoute(const AboutScreen(), routeSettings);
       case connectionMode:
-        return _buildModalRoute(const ConnectionModeScreen(), settings);
+        return _buildModalRoute(const ConnectionModeScreen(), routeSettings);
       default:
-        return _buildPageRoute(const HomeScreen(), settings);
+        return _buildPageRoute(const HomeScreen(), routeSettings);
     }
   }
 

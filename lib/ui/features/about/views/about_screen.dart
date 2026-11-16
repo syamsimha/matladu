@@ -14,16 +14,22 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppDarkColors.background : AppColors.background,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           AppStrings.aboutTitle,
-          style: AppTypography.headlineMedium.copyWith(fontSize: 18),
+          style: AppTypography.headlineMedium.copyWith(
+            fontSize: 18,
+            color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
+          ),
         ),
         centerTitle: true,
       ),
@@ -45,12 +51,13 @@ class AboutScreen extends StatelessWidget {
 
                         const SizedBox(height: 18),
 
-                        // "Matladu AI" Title
+                        // "Matladu" Title
                         Text(
                           AppStrings.appName,
                           style: AppTypography.displayLarge.copyWith(
                             fontSize: context.isCompact ? 24 : 28,
                             fontWeight: FontWeight.w800,
+                            color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                           ),
                         ),
 
@@ -61,7 +68,7 @@ class AboutScreen extends StatelessWidget {
                           AppStrings.tagline,
                           style: AppTypography.tagline.copyWith(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
                           ),
                         ),
 
@@ -71,13 +78,14 @@ class AboutScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3E8FF),
+                            color: isDark ? const Color(0xFF2E1065) : const Color(0xFFF3E8FF),
                             borderRadius: BorderRadius.circular(20),
+                            border: isDark ? Border.all(color: const Color(0xFF7E22CE).withValues(alpha: 0.4), width: 1) : null,
                           ),
                           child: Text(
                             AppStrings.version,
                             style: AppTypography.caption.copyWith(
-                              color: const Color(0xFF7E22CE),
+                              color: isDark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -93,7 +101,7 @@ class AboutScreen extends StatelessWidget {
                             AppStrings.aboutDescription,
                             style: AppTypography.bodyMedium.copyWith(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
                               height: 1.4,
                             ),
                             textAlign: TextAlign.center,
@@ -111,6 +119,7 @@ class AboutScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _buildFeatureCard(
+                                  isDark: isDark,
                                   icon: Icons.bolt_rounded,
                                   iconColor: AppColors.statusYellow,
                                   title: AppStrings.featureOnline,
@@ -119,16 +128,18 @@ class AboutScreen extends StatelessWidget {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _buildFeatureCard(
+                                  isDark: isDark,
                                   icon: Icons.download_rounded,
-                                  iconColor: AppColors.primary,
+                                  iconColor: isDark ? AppDarkColors.primary : AppColors.primary,
                                   title: AppStrings.featureOffline,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _buildFeatureCard(
+                                  isDark: isDark,
                                   icon: Icons.shield_rounded,
-                                  iconColor: AppColors.statusGreen,
+                                  iconColor: isDark ? AppDarkColors.statusGreen : AppColors.statusGreen,
                                   title: AppStrings.featurePrivacy,
                                 ),
                               ),
@@ -140,7 +151,7 @@ class AboutScreen extends StatelessWidget {
 
                         const SizedBox(height: 24),
 
-                        // 3. Footer: "Made with ❤️ for everyone" & "© 2026 Matladu AI"
+                        // 3. Footer: "Made with ❤️ for everyone" & "© 2026 Matladu"
                         Padding(
                           padding: const EdgeInsets.only(bottom: 24),
                           child: Column(
@@ -148,7 +159,7 @@ class AboutScreen extends StatelessWidget {
                               Text(
                                 AppStrings.madeWithLove,
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 13,
                                 ),
@@ -157,7 +168,7 @@ class AboutScreen extends StatelessWidget {
                               Text(
                                 AppStrings.copyright,
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.textMuted,
+                                  color: isDark ? AppDarkColors.textMuted : AppColors.textMuted,
                                   fontSize: 12,
                                 ),
                               ),
@@ -177,6 +188,7 @@ class AboutScreen extends StatelessWidget {
   }
 
   Widget _buildFeatureCard({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -184,14 +196,17 @@ class AboutScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppDarkColors.surface : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderLight, width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? AppDarkColors.border : AppColors.borderLight,
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadow,
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : AppColors.cardShadow,
             blurRadius: 10,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -204,7 +219,7 @@ class AboutScreen extends StatelessWidget {
             title,
             style: AppTypography.caption.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
               fontSize: 12,
               height: 1.3,
             ),

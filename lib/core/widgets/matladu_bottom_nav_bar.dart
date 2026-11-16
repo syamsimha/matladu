@@ -18,17 +18,22 @@ class MatladuBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? AppDarkColors.surface : Colors.white,
         border: Border(
-          top: BorderSide(color: AppColors.borderLight, width: 1.0),
+          top: BorderSide(
+            color: isDark ? AppDarkColors.border : AppColors.borderLight,
+            width: 1.0,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
+            color: isDark ? const Color(0x33000000) : const Color(0x06000000),
             blurRadius: 10,
-            offset: Offset(0, -3),
+            offset: const Offset(0, -3),
           ),
         ],
       ),
@@ -41,21 +46,25 @@ class MatladuBottomNavBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(
+                  context: context,
                   index: 0,
                   label: 'Home',
                   icon: Icons.home_rounded,
                 ),
                 _buildNavItem(
+                  context: context,
                   index: 1,
                   label: 'Offline',
                   icon: Icons.download_for_offline_outlined,
                 ),
                 _buildNavItem(
+                  context: context,
                   index: 2,
                   label: 'History',
                   icon: Icons.history_rounded,
                 ),
                 _buildNavItem(
+                  context: context,
                   index: 3,
                   label: 'Settings',
                   icon: Icons.settings_outlined,
@@ -69,38 +78,46 @@ class MatladuBottomNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({
+    required BuildContext context,
     required int index,
     required String label,
     required IconData icon,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isActive = currentIndex == index;
-    final Color itemColor = isActive ? AppColors.primary : AppColors.textMuted;
+    final Color itemColor = isActive
+        ? (isDark ? AppDarkColors.primary : AppColors.primary)
+        : (isDark ? AppDarkColors.textMuted : AppColors.textMuted);
 
-    return InkWell(
-      onTap: () => onTabSelected(index),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        constraints: const BoxConstraints(minWidth: 54, minHeight: 48), // Accessible touch target
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: itemColor,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: AppTypography.caption.copyWith(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTabSelected(index),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48), // Accessible touch target
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 24,
                 color: itemColor,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: itemColor,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

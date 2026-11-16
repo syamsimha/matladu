@@ -10,6 +10,7 @@ class HorizontalSoundwave extends StatefulWidget {
   final int barCount;
   final double height;
   final bool isAnimated;
+  final double? audioLevel;
 
   const HorizontalSoundwave({
     super.key,
@@ -18,6 +19,7 @@ class HorizontalSoundwave extends StatefulWidget {
     this.barCount = 28,
     this.height = 28.0,
     this.isAnimated = true,
+    this.audioLevel,
   });
 
   @override
@@ -59,6 +61,10 @@ class _HorizontalSoundwaveState extends State<HorizontalSoundwave>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
+        final double levelMultiplier = (widget.audioLevel != null && widget.audioLevel! > 0.0)
+            ? (0.4 + widget.audioLevel! * 0.6)
+            : 1.0;
+
         return SizedBox(
           height: widget.height,
           child: Row(
@@ -67,9 +73,9 @@ class _HorizontalSoundwaveState extends State<HorizontalSoundwave>
             children: List.generate(widget.barCount, (index) {
               final double baseH = _waveformPattern[index % _waveformPattern.length];
               final double variance = widget.isAnimated
-                  ? (sin((_controller.value * 2 * pi) + (index * 0.4)) * 0.2)
+                  ? (sin((_controller.value * 2 * pi) + (index * 0.4)) * 0.25 * levelMultiplier)
                   : 0.0;
-              final double finalHeight = (baseH + variance).clamp(0.15, 1.0) * widget.height;
+              final double finalHeight = ((baseH * levelMultiplier) + variance).clamp(0.12, 1.0) * widget.height;
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 2.0),

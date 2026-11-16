@@ -3,7 +3,7 @@ class AppStrings {
   AppStrings._();
 
   // App Identity & Slogans
-  static const String appName = 'Matladu AI';
+  static const String appName = 'Matladu';
   static const String tagline = 'Speak • Translate • Connect';
   static const String splashSubtext = 'Break the language barrier\nwith just one microphone';
   static const String initializing = 'Initializing...';
@@ -11,10 +11,10 @@ class AppStrings {
   static const String aboutDescription =
       'A smart voice translator that bridges language barriers.';
   static const String madeWithLove = 'Made with ❤️ for everyone';
-  static const String copyright = '© 2026 Matladu AI';
+  static const String copyright = '© 2026 Matladu';
 
   // Home Screen (Screen 2)
-  static const String onlineReady = 'Online • Ready';
+  static const String onlineReady = 'Online - Ready';
   static const String tapToSpeak = 'Tap to Speak';
   static const String speakNaturally = 'Speak naturally in any language';
   static const String englishDetect = 'English\n(Detect)';
@@ -50,14 +50,14 @@ class AppStrings {
 
   // Offline Packs Screen (Screen 5)
   static const String offlinePacksTitle = 'Offline Packs';
-  static const String noDownloadRequired = 'No download required';
-  static const String useOnlineInstantly = 'Use online translation instantly!';
+  static const String noDownloadRequired = '100% Private On-Device Models';
+  static const String useOnlineInstantly = 'Download once, translate offline with zero data egress.';
   static const String availablePacks = 'Available Packs';
   static const String downloadedPacks = 'Downloaded Packs';
   static const String download = 'Download';
   static const String readyToUse = 'Ready to use';
   static const String offlineNoticeBottom =
-      'You can use Matladu AI without downloading any packs!';
+      'All speech recognition and neural translation runs strictly on-device to protect your privacy.';
 
   // Settings Screen (Screen 6)
   static const String settingsTitle = 'Settings';
@@ -66,12 +66,12 @@ class AppStrings {
   static const String offlineLanguagePacks = 'Offline Language Packs';
   static const String manageDownloadedPacks = 'Manage downloaded packs';
   static const String appPreferences = 'App Preferences';
-  static const String themeVoiceSpeed = 'Theme, Voice, Speed';
+  static const String themeVoiceSpeed = 'Voice, Speed';
   static const String speechSettings = 'Speech Settings';
   static const String recognitionAndTts = 'Recognition & TTS';
   static const String cacheAndStorage = 'Cache & Storage';
   static const String clearCacheSample = 'Clear cache (24.5 MB)';
-  static const String aboutMatladuAi = 'About Matladu AI';
+  static const String aboutMatladuAi = 'About Matladu';
   static const String resetSettings = 'Reset Settings';
 
   // About Screen (Screen 7)
@@ -83,7 +83,7 @@ class AppStrings {
   // Connection Mode Screen (Screen 8)
   static const String connected = 'Connected!';
   static const String connectedSubtitle =
-      'You are online.\nMatladu Ai will use online\ntranslation models.';
+      'You are online.\nMatladu will use online\ntranslation models.';
   static const String autoSwitchEnabled = 'Auto Switch Enabled';
   static const String autoSwitchSubtitle =
       'Switches to offline if internet\nis unavailable.';

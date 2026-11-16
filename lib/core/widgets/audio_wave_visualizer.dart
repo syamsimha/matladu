@@ -24,7 +24,6 @@ class AudioWaveVisualizer extends StatefulWidget {
 class _AudioWaveVisualizerState extends State<AudioWaveVisualizer>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  final Random _random = Random();
 
   @override
   void initState() {
@@ -64,8 +63,8 @@ class _AudioWaveVisualizerState extends State<AudioWaveVisualizer>
                 height: widget.height * normalizedHeight,
                 decoration: BoxDecoration(
                   color: widget.isRecording
-                      ? widget.primaryColor.withOpacity(
-                          (0.4 + normalizedHeight * 0.6).clamp(0.4, 1.0),
+                      ? widget.primaryColor.withValues(
+                          alpha: (0.4 + normalizedHeight * 0.6).clamp(0.4, 1.0),
                         )
                       : AppColors.border,
                   borderRadius: BorderRadius.circular(4),

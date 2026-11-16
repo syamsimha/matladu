@@ -1,5 +1,5 @@
 name: matladu_ai
-description: "Matladu AI — AI-powered real-time voice translation Android application. Listen. Convert. Translate."
+description: "Matladu — Real-time voice translation application. Listen. Convert. Translate."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -14,9 +14,17 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.1.2
   shared_preferences: ^2.3.2
+  record: ^6.2.1
+  permission_handler: ^13.0.2
+  sherpa_onnx: ^2.0.1
+  path_provider: ^2.1.6
+  google_mlkit_translation: ^1.0.1
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 

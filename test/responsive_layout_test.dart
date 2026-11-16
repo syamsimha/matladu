@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:matladu_ai/core/responsive/responsive_layout.dart';
+import 'package:matladu_ai/core/navigation/app_routes.dart';
 import 'package:matladu_ai/core/theme/app_theme.dart';
 import 'package:matladu_ai/data/repositories/settings_repository.dart';
 import 'package:matladu_ai/data/repositories/translation_repository.dart';
@@ -15,6 +15,7 @@ import 'package:matladu_ai/ui/features/live_translation/views/live_translation_s
 import 'package:matladu_ai/ui/features/offline_packs/views/offline_packs_screen.dart';
 import 'package:matladu_ai/ui/features/settings/views/settings_screen.dart';
 import 'package:matladu_ai/ui/features/splash/views/splash_screen.dart';
+import 'package:matladu_ai/ui/features/theme/view_models/theme_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,6 +42,9 @@ void main() {
       providers: [
         Provider<SettingsRepository>.value(value: settingsRepo),
         Provider<TranslationRepository>.value(value: transRepo),
+        ChangeNotifierProvider<ThemeViewModel>(
+          create: (_) => ThemeViewModel(settingsRepository: settingsRepo),
+        ),
         ChangeNotifierProvider<HomeViewModel>(
           create: (_) => HomeViewModel(
             translationRepository: transRepo,
@@ -50,6 +54,7 @@ void main() {
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
         home: MediaQuery(
           data: MediaQueryData(
             size: size,
@@ -84,6 +89,7 @@ void main() {
 
         await tester.pumpWidget(createTestWidget(const SplashScreen(), size));
         expect(tester.takeException(), isNull);
+        await tester.pump(const Duration(milliseconds: 2600));
       });
 
       testWidgets('Screen 2 (Home) renders overflow-free on $deviceName', (tester) async {
@@ -151,3 +157,4 @@ void main() {
     }
   });
 }
+

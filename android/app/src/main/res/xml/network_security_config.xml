@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Block cleartext traffic completely across the application -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- STRICT ON-DEVICE PRIVACY: Explicitly refuse connections to telemetry and tracking domains -->
+    <domain-config>
+        <domain includeSubdomains="true">firebaselogging-pa.googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseinstallations.googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseremoteconfig.googleapis.com</domain>
+        <domain includeSubdomains="true">app-measurement.com</domain>
+        <domain includeSubdomains="true">crashlytics.com</domain>
+        <domain includeSubdomains="true">google-analytics.com</domain>
+        <trust-anchors>
+            <!-- Pin to empty trust anchors: all TLS handshakes to these hosts are immediately rejected -->
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
+

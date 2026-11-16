@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  Timer? _navigationTimer;
 
   @override
   void initState() {
@@ -43,8 +44,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Auto-advance to Home Screen
-    Timer(const Duration(milliseconds: 2500), () {
+    // Auto-advance to Home Screen (6.0s so splash can be observed and captured)
+    _navigationTimer = Timer(const Duration(milliseconds: 6000), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
@@ -53,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -60,23 +62,31 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppDarkColors.background : AppColors.background,
       body: Stack(
         children: [
-          // Background Gradient (Sky blue to light white)
+          // Background Gradient (Deep navy/slate in dark, sky blue in light)
           Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFE8F2FF),
-                  Color(0xFFF6FAFF),
-                  Color(0xFFFFFFFF),
-                ],
+                colors: isDark
+                    ? const [
+                        Color(0xFF070D18),
+                        Color(0xFF0B1220),
+                        Color(0xFF111C2E),
+                      ]
+                    : const [
+                        Color(0xFFE8F2FF),
+                        Color(0xFFF6FAFF),
+                        Color(0xFFFFFFFF),
+                      ],
               ),
             ),
           ),
@@ -118,13 +128,14 @@ class _SplashScreenState extends State<SplashScreen>
 
                                   const SizedBox(height: 24),
 
-                                  // "Matladu AI" Title
+                                  // "Matladu" Title
                                   Text(
                                     AppStrings.appName,
                                     style: AppTypography.displayLarge.copyWith(
                                       fontSize: context.isCompact ? 28 : 34,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: -0.6,
+                                      color: isDark ? AppDarkColors.textPrimary : AppColors.textPrimary,
                                     ),
                                   ),
 
@@ -135,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     AppStrings.tagline,
                                     style: AppTypography.tagline.copyWith(
                                       fontSize: 14,
-                                      color: AppColors.textSecondary,
+                                      color: isDark ? AppDarkColors.textSecondary : AppColors.textSecondary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -149,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
                                       AppStrings.splashSubtext,
                                       style: AppTypography.handwritten.copyWith(
                                         fontSize: 15,
-                                        color: const Color(0xFF334155),
+                                        color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF334155),
                                         height: 1.35,
                                       ),
                                       textAlign: TextAlign.center,
@@ -163,29 +174,38 @@ class _SplashScreenState extends State<SplashScreen>
                                   // Initializing... indicator floating over top of the globe
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 34),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(
-                                          width: 14,
-                                          height: 14,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              Color(0xFF38BDF8),
-                                            ),
-                                          ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? const Color(0xFF17243A).withValues(alpha: 0.85)
+                                            : Colors.white.withValues(alpha: 0.18),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? const Color(0xFF4F8CFF).withValues(alpha: 0.5)
+                                              : Colors.white.withValues(alpha: 0.35),
+                                          width: 1.0,
                                         ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          AppStrings.initializing,
-                                          style: AppTypography.caption.copyWith(
-                                            color: const Color(0xFF94A3B8),
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 13,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: isDark
+                                                ? const Color(0xFF000000).withValues(alpha: 0.4)
+                                                : const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 2),
                                           ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        AppStrings.initializing,
+                                        style: TextStyle(
+                                          color: isDark ? AppDarkColors.textPrimary : Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                          letterSpacing: 0.3,
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -218,8 +238,8 @@ class _GlobePainter extends CustomPainter {
     final Paint glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF0284C7).withOpacity(0.55),
-          const Color(0xFF0EA5E9).withOpacity(0.20),
+          const Color(0xFF0284C7).withValues(alpha: 0.55),
+          const Color(0xFF0EA5E9).withValues(alpha: 0.20),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius * 1.25));
@@ -240,7 +260,7 @@ class _GlobePainter extends CustomPainter {
 
     // Grid lines (Latitude & Longitude)
     final Paint gridPaint = Paint()
-      ..color = const Color(0xFFE0F2FE).withOpacity(0.35)
+      ..color = const Color(0xFFE0F2FE).withValues(alpha: 0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -267,7 +287,7 @@ class _GlobePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final Paint nodeGlow = Paint()
-      ..color = const Color(0xFF38BDF8).withOpacity(0.8)
+      ..color = const Color(0xFF38BDF8).withValues(alpha: 0.8)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
     final List<Offset> nodes = [

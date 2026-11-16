@@ -12,10 +12,13 @@ class AppColors {
   static const Color primaryLight = Color(0xFF3B82F6);
   static const Color logoBlue = Color(0xFF0EA5E9); // Cyan-blue left speech bubble
   static const Color logoPurple = Color(0xFFA855F7); // Violet-purple right speech bubble
+  static const Color secondary = logoBlue;
+  static const Color purpleAccent = logoPurple;
 
   // Backgrounds & Surfaces
   static const Color background = Color(0xFFF6F9FD); // Soft sky-blue tinted light canvas
   static const Color surface = Color(0xFFFFFFFF); // Crisp white cards
+  static const Color surfaceVariant = cardLightBlue; // Soft blue surface variant
   static const Color cardShadow = Color(0x0C1E293B); // Ultra-soft shadow (5% opacity)
 
   // Specific Card Tint Backgrounds from Reference
@@ -27,12 +30,14 @@ class AppColors {
 
   // State & Badges
   static const Color statusGreen = Color(0xFF16A34A); // Online • Ready & Complete badges
+  static const Color onlineBadge = statusGreen;
   static const Color statusGreenBg = Color(0xFFDCFCE7); // Soft green pill background
   static const Color statusYellow = Color(0xFFEAB308); // Lightning bolt & VIP Crown
   static const Color crownGold = Color(0xFFF59E0B); // VIP Gold crown
   static const Color errorRed = Color(0xFFEF4444); // Red reset & delete actions
 
   // Borders & Dividers
+  static const Color border = borderLight;
   static const Color borderLight = Color(0xFFE2E8F0);
   static const Color borderSubtle = Color(0xFFEDF2F7);
 
@@ -86,4 +91,52 @@ class AppColors {
       Color(0xFF075985),
     ],
   );
+}
+
+/// Rich, polished dark theme palette adhering to deep navy/slate specifications:
+/// Background (#0B1220), Card surfaces (#111C2E), Secondary (#17243A),
+/// Primary text (#F3F7FF), Secondary text (#A8B6CC), Vibrant blue accents (#4F8CFF),
+/// Elegant violet accents (#A78BFA), and adapted mint/green tones.
+class AppDarkColors {
+  AppDarkColors._();
+
+  // Backgrounds & Surfaces
+  static const Color background = Color(0xFF0B1220); // Deep navy/slate
+  static const Color surface = Color(0xFF111C2E); // Rich dark blue cards
+  static const Color surfaceSecondary = Color(0xFF17243A); // Secondary container
+  static const Color surfaceVariant = Color(0xFF1E2D44);
+  static const Color cardShadow = Color(0x33000000); // 20% black shadow
+
+  // Typography
+  static const Color textPrimary = Color(0xFFF3F7FF); // Soft white
+  static const Color textSecondary = Color(0xFFA8B6CC); // Muted blue-grey
+  static const Color textMuted = Color(0xFF64748B); // Slate 500
+  static const Color textWhite = Color(0xFFFFFFFF);
+
+  // Accents & Buttons
+  static const Color primary = Color(0xFF4F8CFF); // Vibrant blue
+  static const Color primaryDark = Color(0xFF2563EB);
+  static const Color primaryLight = Color(0xFF60A5FA);
+  static const Color secondary = Color(0xFFA78BFA); // Elegant violet
+  static const Color accentViolet = Color(0xFFA78BFA);
+  static const Color purpleAccent = Color(0xFFA78BFA);
+
+  // Card Tints in Dark Mode
+  static const Color cardLightBlue = Color(0xFF132238); // Deep blue tint
+  static const Color cardLightGreen = Color(0xFF0D281E); // Deep emerald navy tint
+  static const Color cardLightYellow = Color(0xFF231F0A); // Deep amber tint
+  static const Color cardLightPurple = Color(0xFF1F1635); // Deep violet tint
+  static const Color cardLightRed = Color(0xFF2B1317); // Deep crimson tint
+
+  // Status & Badges
+  static const Color statusGreen = Color(0xFF34D399); // Adapted mint/green
+  static const Color statusGreenBg = Color(0xFF062E1F); // Soft dark green container
+  static const Color statusGreenBorder = Color(0xFF065F46);
+  static const Color statusYellow = Color(0xFFFBBF24);
+  static const Color errorRed = Color(0xFFF87171);
+
+  // Borders & Dividers
+  static const Color border = Color(0xFF223249);
+  static const Color borderLight = Color(0xFF1E293B);
+  static const Color borderSubtle = Color(0xFF17243A);
 }
