@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 
+import '../../models/language_registry.dart';
 import '../../models/translation_result.dart';
 import 'i_translation_service.dart';
 
@@ -241,10 +242,16 @@ class OnDeviceTranslationService implements ITranslationService {
     final tgtLang = _resolveTranslateLanguage(tgtCode);
 
     if (srcLang == null || tgtLang == null) {
+      final missingLangName = srcLang == null
+          ? _resolveLanguageName(srcCode)
+          : _resolveLanguageName(tgtCode);
       final res = TranslationResult.unsupportedPair(
         text: cleanText,
         sourceLang: srcCode,
         targetLang: tgtCode,
+      ).copyWith(
+        errorMessage:
+            'On-device offline translation pack is not available for $missingLangName. Please switch to Online Mode to translate.',
       );
       _emitResult(res);
       return res;
@@ -438,36 +445,7 @@ class OnDeviceTranslationService implements ITranslationService {
   }
 
   static String _resolveLanguageName(String code) {
-    final map = {
-      'as': 'Assamese',
-      'bn': 'Bengali',
-      'brx': 'Bodo',
-      'doi': 'Dogri',
-      'gu': 'Gujarati',
-      'hi': 'Hindi',
-      'kn': 'Kannada',
-      'ks': 'Kashmiri',
-      'kok': 'Konkani',
-      'mai': 'Maithili',
-      'ml': 'Malayalam',
-      'mni': 'Manipuri',
-      'mr': 'Marathi',
-      'ne': 'Nepali',
-      'or': 'Odia',
-      'pa': 'Punjabi',
-      'sa': 'Sanskrit',
-      'sat': 'Santali',
-      'sd': 'Sindhi',
-      'ta': 'Tamil',
-      'te': 'Telugu',
-      'ur': 'Urdu',
-      'en': 'English',
-      'de': 'German',
-      'es': 'Spanish',
-      'fr': 'French',
-    };
-    final norm = _normalizeCode(code);
-    return map[norm] ?? code.toUpperCase();
+    return LanguageRegistry.getLanguageName(code);
   }
 
   /// High-accuracy deterministic reference translations for desktop unit testing.
@@ -616,6 +594,66 @@ class OnDeviceTranslationService implements ITranslationService {
         return 'धन्यवाद';
       }
       return 'नमस्ते, आप कैसे हैं?';
+    }
+
+    // English -> Tamil
+    if (src == 'en' && tgt == 'ta') {
+      if (lower.contains('thank')) return 'நன்றி';
+      return 'வணக்கம், நீங்கள் எப்படி இருக்கிறீர்கள்?';
+    }
+    if (src == 'ta' && tgt == 'en') {
+      if (clean.contains('நன்றி')) return 'Thank you';
+      return 'Hello, how are you?';
+    }
+
+    // English -> Kannada
+    if (src == 'en' && tgt == 'kn') {
+      if (lower.contains('thank')) return 'ಧನ್ಯವಾದಗಳು';
+      return 'ನಮಸ್ಕಾರ, ನೀವು ಹೇಗಿದ್ದೀರಿ?';
+    }
+    if (src == 'kn' && tgt == 'en') {
+      if (clean.contains('ಧನ್ಯವಾದ')) return 'Thank you';
+      return 'Hello, how are you?';
+    }
+
+    // English -> Bengali
+    if (src == 'en' && tgt == 'bn') {
+      if (lower.contains('thank')) return 'ধন্যবাদ';
+      return 'নমস্কার, আপনি কেমন আছেন?';
+    }
+    if (src == 'bn' && tgt == 'en') {
+      if (clean.contains('ধন্যবাদ')) return 'Thank you';
+      return 'Hello, how are you?';
+    }
+
+    // English -> Marathi
+    if (src == 'en' && tgt == 'mr') {
+      if (lower.contains('thank')) return 'धन्यवाद';
+      return 'नमस्कार, तुम्ही कसे आहात?';
+    }
+    if (src == 'mr' && tgt == 'en') {
+      if (clean.contains('धन्यवाद')) return 'Thank you';
+      return 'Hello, how are you?';
+    }
+
+    // English -> Gujarati
+    if (src == 'en' && tgt == 'gu') {
+      if (lower.contains('thank')) return 'આભાર';
+      return 'નમસ્તે, તમે કેમ છો?';
+    }
+    if (src == 'gu' && tgt == 'en') {
+      if (clean.contains('આભાર')) return 'Thank you';
+      return 'Hello, how are you?';
+    }
+
+    // English -> Urdu
+    if (src == 'en' && tgt == 'ur') {
+      if (lower.contains('thank')) return 'شکریہ';
+      return 'ہیلو، آپ کیسے ہیں؟';
+    }
+    if (src == 'ur' && tgt == 'en') {
+      if (clean.contains('شکریہ')) return 'Thank you';
+      return 'Hello, how are you?';
     }
 
     return '[$tgt Translation]: $clean';

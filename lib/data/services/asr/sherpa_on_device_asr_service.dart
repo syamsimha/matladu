@@ -6,6 +6,7 @@ import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
 import '../../models/asr_state.dart';
 import '../../models/audio_recording_state.dart';
+import '../../models/language_registry.dart';
 import 'i_asr_service.dart';
 import 'model_manager_service.dart';
 import 'pcm_converter.dart';
@@ -326,13 +327,13 @@ class SherpaOnDeviceASRService implements IASRService {
         finalText = valResult.isValid ? valResult.cleanedText : '';
 
         // 3. Grounded Acoustic Language Identification Strategy:
-        // Priority 1: User explicit manual source selection (e.g. 'te', 'hi', 'en').
-        // Priority 2: Whisper acoustic language classification (<|te|>, <|hi|>, <|ta|>, <|kn|>, <|en|>).
-        // Priority 3: Native Indic script verification (Telugu, Devanagari, Tamil, Kannada).
+        // Priority 1: User explicit manual source selection (e.g. 'te', 'hi', 'en', 'de').
+        // Priority 2: Whisper acoustic language classification (<|te|>, <|hi|>, <|ta|>, <|kn|>, <|en|>, <|de|>, etc.).
+        // Priority 3: Native script verification across all 24 supported languages.
         // RULE: Unicode script inspection must NEVER override acoustic detection to force English
         // for Romanized Indic words. If acoustic detection is uncertain, return explicit 'und'.
-        const validSupported = {'en', 'te', 'hi', 'ta', 'kn', 'ml', 'bn', 'mr', 'gu', 'pa'};
-        const validIndic = {'te', 'hi', 'ta', 'kn'};
+        final validSupported = LanguageRegistry.allLanguageCodes;
+        final validIndic = LanguageRegistry.allLanguageCodes.where((c) => c != 'en' && c != 'de').toSet();
 
         if (_activeLanguageHint != null &&
             _activeLanguageHint != 'auto' &&
@@ -344,10 +345,7 @@ class SherpaOnDeviceASRService implements IASRService {
           if (validSupported.contains(rawModelLang)) {
             detectedLang = rawModelLang;
             detectionConfidence = 0.90;
-          } else if (valResult.resolvedScript == 'te' ||
-                     valResult.resolvedScript == 'hi' ||
-                     valResult.resolvedScript == 'ta' ||
-                     valResult.resolvedScript == 'kn') {
+          } else if (LanguageRegistry.isLanguageSupported(valResult.resolvedScript)) {
             detectedLang = valResult.resolvedScript;
             detectionConfidence = 0.88;
           } else {
@@ -355,10 +353,7 @@ class SherpaOnDeviceASRService implements IASRService {
             detectionConfidence = 0.0;
             errorMessage = 'Language detection ambiguous. Please select your source language manually.';
           }
-        } else if (valResult.resolvedScript == 'te' ||
-                   valResult.resolvedScript == 'hi' ||
-                   valResult.resolvedScript == 'ta' ||
-                   valResult.resolvedScript == 'kn') {
+        } else if (LanguageRegistry.isLanguageSupported(valResult.resolvedScript)) {
           detectedLang = valResult.resolvedScript;
           detectionConfidence = 0.88;
         } else {
@@ -773,21 +768,7 @@ class SherpaOnDeviceASRService implements IASRService {
 
   String? _resolveLanguageName(String? code) {
     if (code == null) return null;
-    final clean = code.replaceAll('<|', '').replaceAll('|>', '').trim().toLowerCase();
-    final map = {
-      'te': 'Telugu',
-      'hi': 'Hindi',
-      'en': 'English',
-      'ta': 'Tamil',
-      'kn': 'Kannada',
-      'mr': 'Marathi',
-      'bn': 'Bengali',
-      'ml': 'Malayalam',
-      'es': 'Spanish',
-      'fr': 'French',
-      'de': 'German',
-    };
-    return map[clean.split('-').first] ?? clean;
+    return LanguageRegistry.getLanguageName(code);
   }
 }
 

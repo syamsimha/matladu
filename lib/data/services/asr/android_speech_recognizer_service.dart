@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../../models/asr_state.dart';
 import '../../models/audio_recording_state.dart';
+import '../../models/language_registry.dart';
 import 'i_asr_service.dart';
 
 /// Platform-native Android SpeechRecognizer service (Google Speech Services).
@@ -16,20 +17,8 @@ class AndroidSpeechRecognizerService implements IASRService {
   static const MethodChannel _channel = MethodChannel('com.matladu.ai/speech_recognizer');
 
   /// The 12 verified languages supported by Google Speech Services on Android.
-  static const Set<String> verifiedSupportedLanguages = {
-    'en',
-    'de',
-    'hi',
-    'bn',
-    'te',
-    'ta',
-    'kn',
-    'ml',
-    'gu',
-    'mr',
-    'pa',
-    'ur',
-  };
+  static Set<String> get verifiedSupportedLanguages =>
+      LanguageRegistry.googleSpeechSupportedCodes;
 
   final _resultController = StreamController<ASRRecognitionResult>.broadcast();
   final _stateController = StreamController<ASRState>.broadcast();
@@ -65,40 +54,12 @@ class AndroidSpeechRecognizerService implements IASRService {
     if (languageCode == null || languageCode.isEmpty || languageCode == 'auto') {
       return false; // Auto-detection requires on-device Whisper acoustic LID
     }
-    final clean = languageCode.toLowerCase().trim().split('-').first.split('_').first;
-    return verifiedSupportedLanguages.contains(clean);
+    final cap = LanguageRegistry.getCapability(languageCode);
+    return cap?.isGoogleSpeechSupported ?? false;
   }
 
   static String resolveLocale(String languageCode) {
-    final clean = languageCode.toLowerCase().trim().split('-').first.split('_').first;
-    switch (clean) {
-      case 'en':
-        return 'en-IN';
-      case 'de':
-        return 'de-DE';
-      case 'te':
-        return 'te-IN';
-      case 'hi':
-        return 'hi-IN';
-      case 'ta':
-        return 'ta-IN';
-      case 'kn':
-        return 'kn-IN';
-      case 'bn':
-        return 'bn-IN';
-      case 'gu':
-        return 'gu-IN';
-      case 'mr':
-        return 'mr-IN';
-      case 'ml':
-        return 'ml-IN';
-      case 'pa':
-        return 'pa-IN';
-      case 'ur':
-        return 'ur-IN';
-      default:
-        return 'en-IN';
-    }
+    return LanguageRegistry.getGoogleSpeechLocale(languageCode);
   }
 
   void _setState(ASRState newState) {

@@ -80,10 +80,12 @@ class TwoWayDirectionManager {
     final normA = _normalizeCode(_languageA.code);
     final normB = _normalizeCode(_languageB.code);
 
-    // If spokenText is provided, check for Romanized Telugu and script validation
+    // If spokenText is provided, check for Romanized Telugu/Hindi and script validation
     if (spokenText != null && spokenText.trim().isNotEmpty) {
       if (TranscriptValidator.isRomanizedTelugu(spokenText)) {
         normDetected = 'te';
+      } else if (TranscriptValidator.isRomanizedHindi(spokenText)) {
+        normDetected = 'hi';
       } else if (normDetected.isEmpty || normDetected == 'auto' || normDetected == 'und') {
         final validation = TranscriptValidator.validate(spokenText);
         if (validation.isValid && validation.resolvedScript != 'unknown') {

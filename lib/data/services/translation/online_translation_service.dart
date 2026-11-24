@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../../models/language_registry.dart';
 import '../../models/translation_result.dart';
 import '../asr/transcript_validator.dart';
 import '../local_storage_service.dart';
@@ -181,12 +182,7 @@ class OnlineTranslationService implements ITranslationService {
 
   @override
   bool isLanguageSupported(String languageCode) {
-    final norm = _normalizeCode(languageCode);
-    return [
-      'as', 'bn', 'brx', 'doi', 'gu', 'hi', 'kn', 'ks', 'kok',
-      'mai', 'ml', 'mni', 'mr', 'ne', 'or', 'pa', 'sa', 'sat',
-      'sd', 'ta', 'te', 'ur', 'en', 'de', 'es', 'fr',
-    ].contains(norm);
+    return LanguageRegistry.isLanguageSupported(languageCode);
   }
 
   @override
@@ -483,28 +479,50 @@ class OnlineTranslationService implements ITranslationService {
             }
           }
 
-          // If direct pair returned empty or missing translation, try English pivot
+          // If direct pair returned empty or missing translation, try English pivot (and Hindi pivot for Indic pairs)
           if ((translatedText == null || translatedText.trim().isEmpty) &&
-              normSrc != 'en' &&
-              normTgt != 'en' &&
               !isRetry) {
-            debugPrint('[OnlineTranslationService] Direct pair returned empty. Pivoting via English bridge ($normSrc -> en -> $normTgt)...');
-            final step1 = await _translateSingleSegment(segmentText, normSrc, 'en', isRetry: true);
-            if (step1.isSuccess &&
-                step1.translatedText.isNotEmpty &&
-                step1.translatedText.toLowerCase() != segmentText.trim().toLowerCase()) {
-              final step2 = await _translateSingleSegment(step1.translatedText, 'en', normTgt, isRetry: true);
-              if (step2.isSuccess && step2.translatedText.isNotEmpty) {
-                return TranslationResult(
-                  originalText: segmentText,
-                  translatedText: step2.translatedText,
-                  sourceLanguageCode: normSrc,
-                  targetLanguageCode: normTgt,
-                  status: TranslationStatus.completed,
-                  duration: stopwatch.elapsed,
-                  timestamp: DateTime.now(),
-                  isMock: false,
-                );
+            if (normSrc != 'en' && normTgt != 'en') {
+              debugPrint('[OnlineTranslationService] Direct pair returned empty. Pivoting via English bridge ($normSrc -> en -> $normTgt)...');
+              final step1 = await _translateSingleSegment(segmentText, normSrc, 'en', isRetry: true);
+              if (step1.isSuccess &&
+                  step1.translatedText.isNotEmpty &&
+                  step1.translatedText.toLowerCase() != segmentText.trim().toLowerCase()) {
+                final step2 = await _translateSingleSegment(step1.translatedText, 'en', normTgt, isRetry: true);
+                if (step2.isSuccess && step2.translatedText.isNotEmpty) {
+                  return TranslationResult(
+                    originalText: segmentText,
+                    translatedText: step2.translatedText,
+                    sourceLanguageCode: normSrc,
+                    targetLanguageCode: normTgt,
+                    status: TranslationStatus.completed,
+                    duration: stopwatch.elapsed,
+                    timestamp: DateTime.now(),
+                    isMock: false,
+                  );
+                }
+              }
+            }
+
+            if (normSrc != 'hi' && normTgt != 'hi') {
+              debugPrint('[OnlineTranslationService] Direct pair returned empty. Pivoting via Hindi bridge ($normSrc -> hi -> $normTgt)...');
+              final stepHi1 = await _translateSingleSegment(segmentText, normSrc, 'hi', isRetry: true);
+              if (stepHi1.isSuccess &&
+                  stepHi1.translatedText.isNotEmpty &&
+                  stepHi1.translatedText.toLowerCase() != segmentText.trim().toLowerCase()) {
+                final stepHi2 = await _translateSingleSegment(stepHi1.translatedText, 'hi', normTgt, isRetry: true);
+                if (stepHi2.isSuccess && stepHi2.translatedText.isNotEmpty) {
+                  return TranslationResult(
+                    originalText: segmentText,
+                    translatedText: stepHi2.translatedText,
+                    sourceLanguageCode: normSrc,
+                    targetLanguageCode: normTgt,
+                    status: TranslationStatus.completed,
+                    duration: stopwatch.elapsed,
+                    timestamp: DateTime.now(),
+                    isMock: false,
+                  );
+                }
               }
             }
           }
@@ -543,6 +561,31 @@ class OnlineTranslationService implements ITranslationService {
                     timestamp: DateTime.now(),
                     isMock: false,
                   );
+                }
+              }
+
+              // Also try Hindi bridge for Indic language pairs if English bridge did not resolve it
+              if (normSrc != 'hi' && normTgt != 'hi') {
+                debugPrint('[OnlineTranslationService] Pivoting via Hindi bridge ($normSrc -> hi -> $normTgt)...');
+                final stepHi1 = await _translateSingleSegment(segmentText, normSrc, 'hi', isRetry: true);
+                if (stepHi1.isSuccess &&
+                    stepHi1.translatedText.isNotEmpty &&
+                    stepHi1.translatedText.toLowerCase() != segmentText.trim().toLowerCase()) {
+                  final stepHi2 = await _translateSingleSegment(stepHi1.translatedText, 'hi', normTgt, isRetry: true);
+                  if (stepHi2.isSuccess &&
+                      stepHi2.translatedText.isNotEmpty &&
+                      TranscriptValidator.isScriptValidForTarget(stepHi2.translatedText, normTgt)) {
+                    return TranslationResult(
+                      originalText: segmentText,
+                      translatedText: stepHi2.translatedText,
+                      sourceLanguageCode: normSrc,
+                      targetLanguageCode: normTgt,
+                      status: TranslationStatus.completed,
+                      duration: stopwatch.elapsed,
+                      timestamp: DateTime.now(),
+                      isMock: false,
+                    );
+                  }
                 }
               }
             }

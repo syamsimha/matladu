@@ -63,6 +63,15 @@ class TranscriptValidator {
     'vachanu', 'koddiga', 'koncham', 'manchi',
   };
 
+  /// High-confidence Romanized Hindi keywords and particles.
+  static const Set<String> romanizedHindiKeywords = {
+    'namaste', 'namaskar', 'kaise', 'kya', 'kar', 'rahe', 'raha', 'rahi',
+    'ho', 'dhanyavad', 'shukriya', 'theek', 'hai', 'hain', 'aap', 'tum',
+    'mera', 'meri', 'naam', 'kahan', 'kab', 'kyun', 'achha', 'accha',
+    'bahut', 'shubh', 'alvida', 'samajh', 'aaya', 'gaya', 'batao',
+    'bataiye', 'kaun', 'kuch', 'haan', 'nahi', 'nahin',
+  };
+
   static const Set<String> _commonEnglishWords = {
     'welcome', 'to', 'the', 'hello', 'how', 'are', 'you', 'good', 'morning',
     'evening', 'night', 'thank', 'thanks', 'what', 'where', 'when', 'why',
@@ -83,6 +92,20 @@ class TranscriptValidator {
     return false;
   }
 
+  /// Determines if a Latin-script text represents Romanized Hindi.
+  static bool isRomanizedHindi(String text) {
+    final words = text.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '').split(RegExp(r'\s+'));
+    if (words.any((w) => _commonEnglishWords.contains(w))) {
+      return false; // Contains explicit English vocabulary
+    }
+    for (final word in words) {
+      if (romanizedHindiKeywords.contains(word)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Validates whether the translated text matches the expected target language script.
   /// Rejects outputs that contain Indic scripts when the target is European (e.g. German, English).
   static bool isScriptValidForTarget(String text, String targetLangCode) {
@@ -92,7 +115,7 @@ class TranscriptValidator {
 
     // European / Latin-script targets (German, English, Spanish, French)
     if (normTgt == 'de' || normTgt == 'en' || normTgt == 'es' || normTgt == 'fr') {
-      final hasIndic = teluguScriptRegex.hasMatch(clean) ||
+      final hasNonLatin = teluguScriptRegex.hasMatch(clean) ||
           devanagariScriptRegex.hasMatch(clean) ||
           tamilScriptRegex.hasMatch(clean) ||
           kannadaScriptRegex.hasMatch(clean) ||
@@ -100,8 +123,10 @@ class TranscriptValidator {
           gujaratiScriptRegex.hasMatch(clean) ||
           gurmukhiScriptRegex.hasMatch(clean) ||
           odiaScriptRegex.hasMatch(clean) ||
-          malayalamScriptRegex.hasMatch(clean);
-      if (hasIndic) {
+          malayalamScriptRegex.hasMatch(clean) ||
+          persoArabicScriptRegex.hasMatch(clean) ||
+          olChikiScriptRegex.hasMatch(clean);
+      if (hasNonLatin) {
         return false;
       }
     }
@@ -246,11 +271,12 @@ class TranscriptValidator {
     final hasOlChiki = olChikiScriptRegex.hasMatch(text);
     final hasLatin = latinScriptRegex.hasMatch(text);
     final isRomanizedTe = hasLatin && isRomanizedTelugu(text);
+    final isRomanizedHi = hasLatin && !isRomanizedTe && isRomanizedHindi(text);
 
     String resolvedScript = 'unknown';
     if (hasTelugu || isRomanizedTe) {
       resolvedScript = 'te';
-    } else if (hasDevanagari) {
+    } else if (hasDevanagari || isRomanizedHi) {
       resolvedScript = (expectedLanguageCode == 'mr' ||
               expectedLanguageCode == 'ne' ||
               expectedLanguageCode == 'sa' ||
@@ -290,7 +316,7 @@ class TranscriptValidator {
       cleanedText: text,
       isValid: true,
       resolvedScript: resolvedScript,
-      isRomanized: isRomanizedTe,
+      isRomanized: isRomanizedTe || isRomanizedHi,
     );
   }
 

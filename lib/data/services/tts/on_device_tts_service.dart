@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../../models/language_registry.dart';
 import '../../models/tts_result.dart';
 import '../../models/tts_voice.dart';
 import 'i_tts_service.dart';
@@ -445,112 +446,11 @@ class OnDeviceTtsService implements ITtsService {
       _resolveLocale(_normalizeCode(code));
 
   static String _resolveLocale(String normCode) {
-    switch (normCode) {
-      case 'te':
-        return 'te-IN';
-      case 'hi':
-        return 'hi-IN';
-      case 'ta':
-        return 'ta-IN';
-      case 'kn':
-        return 'kn-IN';
-      case 'ml':
-        return 'ml-IN';
-      case 'bn':
-        return 'bn-IN';
-      case 'gu':
-        return 'gu-IN';
-      case 'mr':
-        return 'mr-IN';
-      case 'pa':
-        return 'pa-IN';
-      case 'or':
-        return 'or-IN';
-      case 'as':
-        return 'as-IN';
-      case 'ur':
-        return 'ur-IN';
-      case 'ne':
-        return 'ne-NP';
-      case 'sa':
-        return 'sa-IN';
-      case 'sd':
-        return 'sd-IN';
-      case 'ks':
-        return 'ks-IN';
-      case 'kok':
-        return 'kok-IN';
-      case 'mai':
-        return 'mai-IN';
-      case 'mni':
-        return 'mni-IN';
-      case 'doi':
-        return 'doi-IN';
-      case 'brx':
-        return 'brx-IN';
-      case 'sat':
-        return 'sat-IN';
-      case 'de':
-        return 'de-DE';
-      case 'en':
-      default:
-        return 'en-IN';
-    }
+    return LanguageRegistry.getTtsLocale(normCode);
   }
 
   static String _getLanguageDisplayName(String code) {
-    final norm = _normalizeCode(code);
-    switch (norm) {
-      case 'as':
-        return 'Assamese';
-      case 'bn':
-        return 'Bengali';
-      case 'brx':
-        return 'Bodo';
-      case 'doi':
-        return 'Dogri';
-      case 'gu':
-        return 'Gujarati';
-      case 'hi':
-        return 'Hindi';
-      case 'kn':
-        return 'Kannada';
-      case 'ks':
-        return 'Kashmiri';
-      case 'kok':
-        return 'Konkani';
-      case 'mai':
-        return 'Maithili';
-      case 'ml':
-        return 'Malayalam';
-      case 'mni':
-        return 'Manipuri';
-      case 'mr':
-        return 'Marathi';
-      case 'ne':
-        return 'Nepali';
-      case 'or':
-        return 'Odia';
-      case 'pa':
-        return 'Punjabi';
-      case 'sa':
-        return 'Sanskrit';
-      case 'sat':
-        return 'Santali';
-      case 'sd':
-        return 'Sindhi';
-      case 'ta':
-        return 'Tamil';
-      case 'te':
-        return 'Telugu';
-      case 'ur':
-        return 'Urdu';
-      case 'de':
-        return 'German';
-      case 'en':
-      default:
-        return 'English';
-    }
+    return LanguageRegistry.getLanguageName(code);
   }
 
   @override
